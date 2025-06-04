@@ -61,6 +61,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 controller: _emailController,
                 decoration: InputDecoration(
                   labelText: 'Email',
+                  fillColor: Color(0xffffffff),
+                  filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -73,6 +75,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 obscureText: _obscurePassword,
                 decoration: InputDecoration(
                   labelText: 'Password',
+                  fillColor: Color(0xffffffff),
+                  filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),

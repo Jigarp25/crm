@@ -54,7 +54,7 @@ class _AddCustomerState extends State<AddCustomer>{
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text('Name',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
@@ -68,7 +68,7 @@ class _AddCustomerState extends State<AddCustomer>{
               ),
               const SizedBox(height:16 ),
               Text('E-mail',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
@@ -82,7 +82,7 @@ class _AddCustomerState extends State<AddCustomer>{
               ),
               const SizedBox(height: 16),
               Text('Contact No',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _contactnoController,
                 decoration: InputDecoration(
@@ -96,7 +96,7 @@ class _AddCustomerState extends State<AddCustomer>{
               ),
               const SizedBox(height: 16),
               Text('Comapny Name',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24)),
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _companymnameController,
                 decoration: InputDecoration(
@@ -110,7 +110,7 @@ class _AddCustomerState extends State<AddCustomer>{
               ),
               const SizedBox(height: 16),
               Text('Address',textAlign: TextAlign.left,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 24)),
+              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _buildingnameController,
                 decoration: InputDecoration(

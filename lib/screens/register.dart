@@ -59,27 +59,38 @@ class _RegisterState extends State<Register>{
         child: Form(
           key: _formKey,
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text('Name',textAlign: TextAlign.left,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
                   labelText: 'Name',
+                  fillColor: Color(0xffffffff),
+                  filled: true,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
               ),
               const SizedBox(height: 16),
+              Text('E-mail',textAlign: TextAlign.left,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
                     labelText: 'E-Mail',
+                    fillColor: Color(0xffffffff),
+                    filled: true,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16)
                     )
                 ),
               ),
               const SizedBox(height: 16),
+              Text('Role',textAlign: TextAlign.left,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               Container(
                   alignment: Alignment.centerLeft,
                   child: DropdownMenu<userRole>(
@@ -94,11 +105,15 @@ class _RegisterState extends State<Register>{
                   )
               ),
               const SizedBox(height: 16),
+              Text('Create Password',textAlign: TextAlign.left,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _createPasswordController,
                 obscureText: true,
                 decoration: InputDecoration(
                     labelText: 'Create Password',
+                  fillColor: Color(0xffffffff),
+                  filled: true,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16)
                     ),
@@ -107,11 +122,15 @@ class _RegisterState extends State<Register>{
                 validator: (value) => validatePassword(value ?? ''),
               ),
               const SizedBox(height: 16),
+              Text('Confirm Password',textAlign: TextAlign.left,
+                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
               TextFormField(
                 controller: _confirmPasswordController,
                 obscureText:true,
                 decoration: InputDecoration(
                     labelText: 'Confirm Password',
+                  fillColor: Color(0xffffffff),
+                  filled: true,
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                     ),
@@ -119,7 +138,6 @@ class _RegisterState extends State<Register>{
                       fontSize: 16,
                       color: Colors.red,
                   overflow: TextOverflow.visible
-
                   ),
                 ),
                 validator: (value) {

@@ -14,9 +14,9 @@ class crm extends StatelessWidget {
        debugShowCheckedModeBanner: false,
       title: 'CRM App',
       theme: ThemeData(
-        primarySwatch: Colors.indigo,
+        primarySwatch: Colors.blue,
       ),
-      home:  CustomerList()
+      home:  const LoginScreen()
     );
   }
 }
