@@ -8,16 +8,19 @@ class CustomerList extends StatelessWidget{
       'name':'Jigar Patel',
       'email': 'pateljigar2505@gmail.com',
       'phone': '+91 95746 92421',
+      'address':'somewhere in surat',
     },
     {
       'name':'Dhruv Patel',
       'email': 'pateldhruv2505@gmail.com',
       'phone': '+91 95746 92421',
+      'address':'somewhere in surat',
     },
     {
       'name':'Meet Solanki',
       'email': 'solankimeet@gmail.com',
       'phone': '+91 95746 92421',
+      'address':'somewhere in surat',
     }
   ];
   @override
