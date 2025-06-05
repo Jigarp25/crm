@@ -66,7 +66,6 @@ class _RegisterState extends State<Register>{
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Name',
                   fillColor: Color(0xffffffff),
                   filled: true,
                   border: OutlineInputBorder(
@@ -80,7 +79,6 @@ class _RegisterState extends State<Register>{
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                    labelText: 'E-Mail',
                     fillColor: Color(0xffffffff),
                     filled: true,
                     border: OutlineInputBorder(
@@ -95,7 +93,6 @@ class _RegisterState extends State<Register>{
                   alignment: Alignment.centerLeft,
                   child: DropdownMenu<userRole>(
                       controller: roleController,
-                      label: const Text("Select Role"),
                       dropdownMenuEntries: userRole.entries,
                       onSelected:(userRole? role){
                         setState(() {
@@ -111,7 +108,6 @@ class _RegisterState extends State<Register>{
                 controller: _createPasswordController,
                 obscureText: true,
                 decoration: InputDecoration(
-                    labelText: 'Create Password',
                   fillColor: Color(0xffffffff),
                   filled: true,
                     border: OutlineInputBorder(
@@ -128,7 +124,6 @@ class _RegisterState extends State<Register>{
                 controller: _confirmPasswordController,
                 obscureText:true,
                 decoration: InputDecoration(
-                    labelText: 'Confirm Password',
                   fillColor: Color(0xffffffff),
                   filled: true,
                     border: OutlineInputBorder(

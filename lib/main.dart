@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'screens/loginscreen.dart';
-import 'screens/customerlist.dart';
+import 'screens/leadlist.dart';
 void main() {
   runApp(const crm());
 }
@@ -14,9 +14,9 @@ class crm extends StatelessWidget {
        debugShowCheckedModeBanner: false,
       title: 'CRM App',
       theme: ThemeData(
-        primarySwatch: Colors.blue,
+        primarySwatch: Colors.deepPurple,
       ),
-      home:  const LoginScreen()
+      home:  LoginScreen()
     );
   }
 }

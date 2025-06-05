@@ -24,6 +24,26 @@ class _AddCustomerState extends State<AddCustomer>{
     if (pincode.length < 6) return 'please enter validate pincode';
     return null;
   }
+  void _handleSubmit(){
+    if (_formKey.currentState?.validate() != true)
+      return;
+
+    final name = _nameController.text.trim();
+    final email = _emailController.text.trim();
+    final contactno = _contactnoController.text.trim();
+    final companyname = _companymnameController.text.trim();
+    final pincode = _pincodeController.text.trim();
+    
+    if(name.isEmpty || email.isEmpty|| contactno.isEmpty || companyname.isEmpty||pincode.isEmpty){
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please fill all required fields')),
+      );
+      return;
+    }
+    // TODO : Add Logic save customer
+    
+    Navigator.pop(context);
+  }
 
   @override
   Widget build(BuildContext context){
@@ -53,12 +73,21 @@ class _AddCustomerState extends State<AddCustomer>{
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Name',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+             RichText(
+                 text: TextSpan(
+                   text: 'Name',
+                   style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                   children: const[
+                     TextSpan(
+                       text: '*',
+                       style: TextStyle(color: Color(0xffff0000)),
+                     ),
+                   ],
+                 )
+             ),
               TextFormField(
                 controller: _nameController,
                 decoration: InputDecoration(
-                  labelText: 'Name',
                   filled:true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -67,12 +96,21 @@ class _AddCustomerState extends State<AddCustomer>{
                 ),
               ),
               const SizedBox(height:16 ),
-              Text('E-mail',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+              RichText(
+                  text: TextSpan(
+                    text: 'E-mail',
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    children: const[
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(color: Color(0xffff0000)),
+                      ),
+                    ],
+                  )
+              ),
               TextFormField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  labelText: 'e-mail',
                   filled:true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -81,12 +119,21 @@ class _AddCustomerState extends State<AddCustomer>{
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Contact No',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+              RichText(
+                  text: TextSpan(
+                    text: 'Conatact No',
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    children: const[
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(color: Color(0xffff0000)),
+                      ),
+                    ],
+                  )
+              ),
               TextFormField(
                 controller: _contactnoController,
                 decoration: InputDecoration(
-                  labelText: 'Contact No.',
                   filled:true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -95,12 +142,21 @@ class _AddCustomerState extends State<AddCustomer>{
                 ),
               ),
               const SizedBox(height: 16),
-              Text('Comapny Name',textAlign: TextAlign.left,
-                  style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+              RichText(
+                  text: TextSpan(
+                    text: 'Comapany Name',
+                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    children: const[
+                      TextSpan(
+                        text: '*',
+                        style: TextStyle(color: Color(0xffff0000)),
+                      ),
+                    ],
+                  )
+              ),
               TextFormField(
                 controller: _companymnameController,
                 decoration: InputDecoration(
-                  labelText: 'Company Name',
                   filled:true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -162,7 +218,14 @@ class _AddCustomerState extends State<AddCustomer>{
               TextFormField(
                 controller: _pincodeController,
                 decoration:  InputDecoration(
-                  labelText: 'Pincode',
+                  label: Text.rich(
+                      TextSpan(
+                        children: <InlineSpan>[
+                          WidgetSpan(child: Text('pincode')),
+                          WidgetSpan(child: Text('*',style: TextStyle(color: Color(0xffff0000)),))
+                        ]
+                      )
+                  ),
                   filled: true,
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
@@ -170,7 +233,11 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              const SizedBox(height: 30),
+              SizedBox(
+                height: 24,
+                child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
+              ),
+
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -178,15 +245,16 @@ class _AddCustomerState extends State<AddCustomer>{
                     backgroundColor: Color(0xff5b3dde),
                     minimumSize: Size(60 , 50)
                   ),
-                    onPressed: (){
+                    onPressed:
                     //TODO: add Customer
-                    },
+                      _handleSubmit,
                   child: const Text(
                     'Submit',
                     style: TextStyle(color: Colors.white,fontSize: 20),
                   ),
                 ),
               ),
+
               const SizedBox(height: 200)
             ],
           ),
