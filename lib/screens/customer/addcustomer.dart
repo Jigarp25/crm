@@ -1,5 +1,11 @@
+import 'package:crm/utils/validators.dart';
 import 'package:flutter/material.dart';
-
+import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:validators/validators.dart';
+import '../../widgets/buttons.dart';
+import 'controller.dart';
+import 'package:provider/provider.dart';
+import '/utils/ui_utils.dart';
 
 class AddCustomer extends StatefulWidget{
   const AddCustomer({super.key});
@@ -9,48 +15,30 @@ class AddCustomer extends StatefulWidget{
 }
 
 class _AddCustomerState extends State<AddCustomer>{
-  final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _contactnoController = TextEditingController();
-  final _companymnameController = TextEditingController();
-  final _buildingnameController = TextEditingController();
-  final _areaController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _pincodeController = TextEditingController();
+  late CustomerController controller;
 
-  String? validatPincode(String pincode){
-    if (pincode.length < 6) return 'please enter validate pincode';
-    return null;
+  @override
+  void didChangeDependencies(){
+    super.didChangeDependencies();
+    controller = Provider.of<CustomerController>(context);
   }
-  void _handleSubmit(){
-    if (_formKey.currentState?.validate() != true)
-      return;
 
-    final name = _nameController.text.trim();
-    final email = _emailController.text.trim();
-    final contactno = _contactnoController.text.trim();
-    final companyname = _companymnameController.text.trim();
-    final pincode = _pincodeController.text.trim();
-    
-    if(name.isEmpty || email.isEmpty|| contactno.isEmpty || companyname.isEmpty||pincode.isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill all required fields')),
+  void _handleSubmit() async{
+   var result = await controller.submitCustomerForm();
+    if (result != null){
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)),
       );
-      return;
+    }else{
+      Navigator.pop(context);
     }
-    // TODO : Add Logic save customer
-    
-    Navigator.pop(context);
-  }
+   }
 
   @override
   Widget build(BuildContext context){
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,
-        title: const Text('Add Customer', style: TextStyle(fontWeight:FontWeight.w700)),
+        title: const Text('Add Customer'),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right:12),
@@ -69,14 +57,14 @@ class _AddCustomerState extends State<AddCustomer>{
       body: SingleChildScrollView(
         padding: const EdgeInsets.symmetric(horizontal: 20,vertical: 0),
         child: Form(
-          key: _formKey,
+          key: controller.formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
              RichText(
                  text: TextSpan(
-                   text: 'Name',
-                   style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                   text: 'Customer Name',
+                   style: const TextStyle( fontSize: 18,color: Color(0xff000000)),
                    children: const[
                      TextSpan(
                        text: '*',
@@ -86,43 +74,36 @@ class _AddCustomerState extends State<AddCustomer>{
                  )
              ),
               TextFormField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                controller: controller.txtName,
+                decoration: inputDecoration(
+                  hint: ' Name'
                 ),
               ),
-              const SizedBox(height:16 ),
+              vSpace(),
               RichText(
                   text: TextSpan(
                     text: 'E-mail',
-                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    style: const TextStyle( fontSize: 18,color: Color(0xff000000)),
                     children: const[
                       TextSpan(
-                        text: '*',
+                        text: '',
                         style: TextStyle(color: Color(0xffff0000)),
                       ),
                     ],
                   )
               ),
               TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                controller: controller.txtEmail,
+                validator: (value) => Validators.validateEmail(value),
+                decoration: inputDecoration(
+                  hint: 'Customer Email'
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               RichText(
                   text: TextSpan(
-                    text: 'Conatact No',
-                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    text: 'Contact No',
+                    style: const TextStyle( fontSize: 18,color: Color(0xff000000)),
                     children: const[
                       TextSpan(
                         text: '*',
@@ -131,21 +112,18 @@ class _AddCustomerState extends State<AddCustomer>{
                     ],
                   )
               ),
-              TextFormField(
-                controller: _contactnoController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                ),
+              IntlPhoneField(
+                decoration: inputDecoration(hint: 'Phone No'),
+                initialCountryCode: 'IN',
+                onChanged: (phone){
+                  controller.txtPhoneNo.text = phone.completeNumber;
+                },
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               RichText(
                   text: TextSpan(
-                    text: 'Comapany Name',
-                    style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 18,color: Color(0xff000000)),
+                    text: 'Company Name',
+                    style: const TextStyle( fontSize: 18,color: Color(0xff000000)),
                     children: const[
                       TextSpan(
                         text: '*',
@@ -155,20 +133,16 @@ class _AddCustomerState extends State<AddCustomer>{
                   )
               ),
               TextFormField(
-                controller: _companymnameController,
-                decoration: InputDecoration(
-                  filled:true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
+                controller: controller.txtCompanyName,
+                decoration: inputDecoration(
+                  hint: 'Company Name'
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               Text('Address',textAlign: TextAlign.left,
-              style: TextStyle(fontWeight: FontWeight.w500, fontSize: 18)),
+              style: TextStyle( fontSize: 18)),
               TextFormField(
-                controller: _buildingnameController,
+                controller: controller.txtBuildingName,
                 decoration: InputDecoration(
                   labelText: 'Building Name',
                   filled:true,
@@ -178,9 +152,9 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               TextFormField(
-                controller: _areaController,
+                controller: controller.txtArea,
                 decoration: InputDecoration(
                   labelText: 'Area Name',
                   filled:true,
@@ -190,9 +164,9 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               TextFormField(
-                controller: _cityController,
+                controller: controller.txtCity,
                 decoration: InputDecoration(
                   labelText: 'City',
                   filled:true,
@@ -202,9 +176,9 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               TextFormField(
-                controller: _stateController,
+                controller: controller.txtState,
                 decoration:  InputDecoration(
                   labelText: 'State',
                   filled: true,
@@ -214,14 +188,15 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              vSpace(),
               TextFormField(
-                controller: _pincodeController,
+                controller: controller.txtPincode,
+                validator: (value)=>isNumeric(value ?? '') && value!.length == 6 ? null: 'Invalid pincode',
                 decoration:  InputDecoration(
                   label: Text.rich(
                       TextSpan(
                         children: <InlineSpan>[
-                          WidgetSpan(child: Text('pincode')),
+                          WidgetSpan(child: Text('Pincode')),
                           WidgetSpan(child: Text('*',style: TextStyle(color: Color(0xffff0000)),))
                         ]
                       )
@@ -237,25 +212,13 @@ class _AddCustomerState extends State<AddCustomer>{
                 height: 24,
                 child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
               ),
-
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xff5b3dde),
-                    minimumSize: Size(60 , 50)
-                  ),
-                    onPressed:
-                    //TODO: add Customer
-                      _handleSubmit,
-                  child: const Text(
-                    'Submit',
-                    style: TextStyle(color: Colors.white,fontSize: 20),
-                  ),
+                child: elevatedButton(
+                  onPressed:() async => _handleSubmit(),
+                  label: 'Submit'
                 ),
               ),
-
-              const SizedBox(height: 200)
             ],
           ),
         )
