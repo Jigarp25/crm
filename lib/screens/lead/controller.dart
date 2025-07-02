@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:crm/firebase/Apis.dart';
+import 'package:crm/firebase/Model/Lead.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import '../../../services/dummydata.dart';
 
 class LeadController with ChangeNotifier {
   var formKey = GlobalKey<FormState>();
@@ -10,56 +13,127 @@ class LeadController with ChangeNotifier {
   var txtPhone = TextEditingController();
   var txtAssignedTo = TextEditingController();
   var txtDescription = TextEditingController();
-// Inside class LeadController
-  List<String> customerList = [];
-  List<String> assignedUserList = [];
 
-  String? selectedCustomer;
+  List<LeadModel> leads = [];
+  List<LeadModel> filterLeads = [];
+
+  String? selectedCustomerId;
+  String? selectedCustomerName;
+
   String? selectedAssignedTo;
+  String? selectedAssignedName;
+
   String? selectedStatus;
 
-  List<String> get customer =>
-      Dummydata.allCustomers.map((e) => e['name'] ?? '').toList();
+  List<Map<String,String>> customerList =[];
+  List<Map<String,String>> assignedUserList =[];
 
-  List<Map<String, String>> get userNames => Dummydata.allUser;
+  bool isLoading = false;
+  bool isDropdownLoading = true;
 
   List<String> statusOptions = [
+    'New',
+    'Contacted',
     'Qualified',
     'Unqualified',
     'Converted',
     'Unconverted',
   ];
 
-  void setSelectedCustomer(String? name) {
-    selectedCustomer = name;
-    notifyListeners();
+  Future<void> loadDropdownData() async {
+    try {
+      isDropdownLoading= true;
+      notifyListeners();
+
+      var usersMap = await API.getAllUserNames();
+      assignedUserList = usersMap.map((userMap) => {
+        'id':(userMap["id"]??'').toString(),
+        'name': (userMap["name"] ??'').toString()
+      }).toList();
+
+      for (var user in assignedUserList) {
+        debugPrint('User ID: ${user['id']} - Name: ${user['name']}');
+      }
+
+      var customerMap = await API.getAllCustomerNames();
+      customerList = customerMap.map((customerMap) => {
+        'id':(customerMap["id"]??'').toString(),
+        'name': (customerMap["name"] ??'').toString()
+      }).toList();
+      isDropdownLoading =false;
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Error fetching customer list: $e');
+    }
   }
 
-  void setSelectedAssignedTo(String? user) {
-    selectedAssignedTo = user;
-    txtAssignedTo.text = user ?? '';
-    notifyListeners();
+  Future<String?> leadSubmit() async {
+    if (formKey.currentState?.validate() != true) {
+      return 'Please fill all required fields';
+    }
+
+    try {
+      var firebaseUser = FirebaseAuth.instance.currentUser;
+      if (firebaseUser == null) return 'User not logged in';
+
+      var lead = LeadModel(
+        title: txtTitle.text.trim(),
+        companyName: txtCompanyName.text.trim(),
+        email: txtEmail.text.trim(),
+        phoneNo: txtPhone.text.trim(),
+        description: txtDescription.text.trim(),
+        status: selectedStatus,
+        customerId: selectedCustomerId, // <- using customer ID
+        assignedTo: selectedAssignedTo,
+        createdAt: Timestamp.now(),
+      );
+
+      await API.addLead(lead);
+      clearFields();
+      return null;
+    } catch (e) {
+      debugPrint('Lead Add Error: $e');
+      return 'Failed to add lead';
+    }
   }
 
-  void setSelectedStatus(String? status) {
-    selectedStatus = status;
-    notifyListeners();
-  }
-  void setCustomerList(List<String> list) {
-    customerList = list;
-    notifyListeners(); // if needed
+  Future<void> loadLeads() async {
+    try {
+      isLoading = true;
+      notifyListeners();
+
+      leads = await API.getAllLead();
+
+      for (var lead in leads) {
+        debugPrint('Lead: ${lead.title}, AssignedTo: ${lead.assignedTo}');
+      }
+    } catch (e) {
+      debugPrint('Error fetching leads: $e');
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
   }
 
-  void setAssignedUserList(List<String> list) {
-    assignedUserList = list;
-    notifyListeners(); // if needed
-  }
+  Future<String?> updateLeadStatus(String leadId, String newStatus) async {
+    try {
+      await API.updateLeadStatus(leadId, newStatus);
 
-  void onCustomerSelected(String name) {
-    selectedCustomer = name;
-    notifyListeners(); // if using Consumer widgets
-  }
+      // also update in local list
+      for (var lead in leads){
+        if (lead.id == leadId){
+          lead.status = newStatus;
+          break;
+        }
+      }
 
+      notifyListeners();
+      return null;
+    } catch (e) {
+      debugPrint('Status update failed: $e');
+    }
+    return null;
+  }
 
   void clearFields() {
     txtTitle.clear();
@@ -68,7 +142,7 @@ class LeadController with ChangeNotifier {
     txtPhone.clear();
     txtAssignedTo.clear();
     txtDescription.clear();
-    selectedCustomer = null;
+    selectedCustomerId = null;
     selectedAssignedTo = null;
     selectedStatus = null;
   }

@@ -5,8 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:crm/utils/communication.dart';
 import 'package:crm/widgets/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
+import 'package:provider/provider.dart';
 import '../../firebase/Model/Customer.dart';
 import '../../widgets/headcontainer.dart';
+import 'controller.dart';
 
 class CustomerDetail extends StatefulWidget {
   final CustomerModel customer;
@@ -25,8 +27,12 @@ class _CustomerDetailState extends State<CustomerDetail> {
     var email = customer.email ?? 'Not Available';
     var phone = customer.phoneNo ?? 'Not Available';
     var companyname = customer.companyName ?? 'Not Available';
+    var createdById = customer.createdBy ?? '';
+    var controller = Provider.of<CustomerController>(context);
+    var createdByName = controller.userIdToNameMap[createdById] ?? 'Unknown';
 
-    final address = [
+
+    var address = [
       customer.buildingName,
       customer.area,
       customer.city,
@@ -72,6 +78,8 @@ class _CustomerDetailState extends State<CustomerDetail> {
                   ),
                   vSpace(12),
                   DetailRow(label: 'Address', value: address),
+                  vSpace(12),
+                  DetailRow(label: 'Created By', value: createdByName),
                 ],
               ),
             ),

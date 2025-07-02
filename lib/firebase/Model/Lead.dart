@@ -1,37 +1,53 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
-class CustomerModel {
+class LeadModel {
   String? id;
-  String? name;
+  String? title;
   String? email;
   String? phoneNo;
   String? companyName;
+  String? status;
+  String? customerId;
+  String? assignedTo;
+  String? description;
   Timestamp? createdAt;
 
-  CustomerModel({
+  LeadModel({
     this.id,
-    this.name,
+    this.title,
     this.email,
     this.phoneNo,
     this.companyName,
+    this.status,
+    this.customerId,
+    this.assignedTo,
+    this.description,
     this.createdAt
   });
 
-  factory CustomerModel.fromJson(Map<String,dynamic>data, String? id) => CustomerModel(
+  factory LeadModel.fromJson(Map<String,dynamic>data, String? id) => LeadModel(
     id: id,
-    name: data['name'],
+    title: data['title'],
     email: data['email'],
     phoneNo: data['phoneNo'],
     companyName: data['companyName'],
+    status: data['status'],
+    customerId: data['customerID'],
+    assignedTo: data['assignedTo'],
+    description: data['description'],
     createdAt: data['createdAt'],
   );
 
   Map<String, dynamic> toJson() => {
     'id' : id,
-    'name' : name,
+    'title' : title,
     'phoneNo' : phoneNo ,
     'email' : email,
     'companyName' : companyName,
+    'status' : status,
+    'customerId' : customerId,
+    'assignedTo' : assignedTo,
+    'description' : description,
     'createdAt': createdAt
   };
 }

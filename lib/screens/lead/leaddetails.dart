@@ -1,15 +1,18 @@
 import 'package:crm/screens/deal/adddeal.dart';
+import 'package:crm/screens/lead/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:crm/utils/communication.dart';
 import 'package:crm/widgets/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
+import 'package:provider/provider.dart';
 import '../../widgets/buttons.dart';
 import '../../widgets/headcontainer.dart';
+import '../../firebase/Model/Lead.dart';
 
 class LeadDetail extends StatefulWidget {
-  final Map<String, String> lead;
+  final LeadModel lead;
 
   const LeadDetail({super.key, required this.lead});
 
@@ -19,32 +22,43 @@ class LeadDetail extends StatefulWidget {
 
 class _LeadDetailState extends State<LeadDetail>{
   late String selectedStatus;
+  String customerName ='Loading...';
 
-  final List<String> leadStatuses = [
-    'New',
-    'Contacted',
-    'Qualified',
-    'Unqualified',
-    'Converted',
-    'Unconverted'
-  ];
 
   @override
   void initState(){
     super.initState();
-    selectedStatus=widget.lead['status']??'';
+    Provider.of<LeadController>(context, listen: false).loadDropdownData();
+    selectedStatus = widget.lead.status ?? '';
   }
 
   @override
   Widget build(BuildContext context) {
-    final lead = widget.lead;
-    final title = lead['title'] ?? 'Lead Detail';
-    final assignedto = lead['assignedTo'] ?? 'Not Available';
-    final companyname = lead['companyName']?? 'Not Available';
-    final phone = lead['phone']?? 'Not Available';
-    final email = lead['email']?? 'Not Available';
-    final customer = lead['customer']?? 'Not Available';
-    final description = lead['description']?? 'Not Available';
+    var controller = Provider.of<LeadController>(context, listen: false);
+    var lead = widget.lead;
+    var title = lead.title ?? 'Lead Detail';
+    var companyName = lead.companyName ?? 'Not Available';
+    var phone = lead.phoneNo ?? 'Not Available';
+    var email = lead.email ?? 'Not Available';
+    var description = lead.description ?? 'Not Available';
+
+    var assignedTo = controller.assignedUserList.firstWhere(
+        (u) => u['id'] == lead.assignedTo,
+      orElse: (){
+          debugPrint('No assigned user found for ID: ${lead.assignedTo}');
+          return{'name':'unknown'};
+      },
+    );
+    var assignedName = assignedTo['name']?? 'Unknown';
+
+    var customer = controller.customerList.firstWhere(
+        (c) => c['id'] == lead.customerId,
+      orElse: (){
+          debugPrint('No Customer match found for Id :${lead.customerId}');
+          return{'name':'unknown'};
+      },
+    );
+     customerName = customer['name'] ?? 'Unknown';
 
     return Scaffold(
       appBar: AppBar(
@@ -57,7 +71,7 @@ class _LeadDetailState extends State<LeadDetail>{
           children: [
             HeadContainer(
               title: title,
-              subtitle: assignedto,
+              subtitle: assignedName,
             ),
             vSpace(),
             DetailContainer(
@@ -66,9 +80,9 @@ class _LeadDetailState extends State<LeadDetail>{
                 children: [
                   DetailRow(label: 'Description', value: description),
                   vSpace(12),
-                  DetailRow(label: 'Company Name', value: companyname),
+                  DetailRow(label: 'Company Name', value: companyName),
                   vSpace(12),
-                  DetailRow(label: 'Customer', value: customer),
+                  DetailRow(label: 'Customer', value: customerName),
                   vSpace(12),
                   DetailRow(
                     label: 'Phone',
@@ -107,14 +121,26 @@ class _LeadDetailState extends State<LeadDetail>{
                           DropdownButton(
                             isExpanded: true,
                             value: selectedStatus,
-                            onChanged: (value){
-                              if(value != null){
+                            onChanged: (value) async {
+                              if(value != null && value != selectedStatus){
                                 setState(() {
                                   selectedStatus=value;
                                 });
+                                var leadId =widget.lead.id;
+                                var error = await controller.updateLeadStatus(leadId!, value);
+                                if(error == null) {
+                                  widget.lead.status = value;
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Status update successfully')),
+                                  );
+                                }else{
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text('Failed to update status'))
+                                  );
+                                }
                               }
                             },
-                            items: leadStatuses.map((status){
+                            items: controller.statusOptions.map((status){
                               return DropdownMenuItem(
                                 value: status,
                                 child: Text(
@@ -130,7 +156,7 @@ class _LeadDetailState extends State<LeadDetail>{
               ),
             ),
             vSpace(),
-            Note(noteKey: 'lead_notes_${widget.lead['id']??'unknown'}'),
+            Note(noteKey: 'lead_notes_${widget.lead.id??'unknown'}'),
             vSpace(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -138,12 +164,12 @@ class _LeadDetailState extends State<LeadDetail>{
                 width: double.infinity,
                 child: elevatedButton(
                   onPressed: () async {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => AddDeal(lead: widget.lead),
-                      ),
-                    );
+                    // Navigator.push(
+                    //   context,
+                    //   MaterialPageRoute(
+                    //     builder: (context) => AddDeal(lead: widget.lead),
+                    //   ),
+                    // );
                   },
                   label: 'Convert to Deal',
                 ),

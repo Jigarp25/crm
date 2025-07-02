@@ -29,11 +29,17 @@ class CustomerController with ChangeNotifier {
     txtPincode.clear();
   }
 
-  // This is the only list you'll maintain
   List<CustomerModel> customers = [];
+  List<CustomerModel> allCustomers = [];
+  List<CustomerModel> filteredCustomers = [];
 
   bool isLoading = false;
 
+  void setCustomers(List<CustomerModel> customers) {
+    allCustomers = customers;
+    filteredCustomers = [...customers];
+    notifyListeners();
+  }
   // Search helper
   List<CustomerModel> searchCustomers(String query) {
     return customers
@@ -79,6 +85,7 @@ class CustomerController with ChangeNotifier {
       return 'Failed to add customer';
     }
   }
+  Map<String, String> userIdToNameMap = {};
 
   // Load all customers
   Future<void> loadCustomers() async {
@@ -86,6 +93,13 @@ class CustomerController with ChangeNotifier {
       isLoading = true;
       notifyListeners();
       customers = await API.getAllCustomers();
+      var userIds = customers
+          .map((c) => c.createdBy)
+          .where((id) => id != null && id.isNotEmpty)
+          .cast<String>()
+          .toSet()
+          .toList();
+      userIdToNameMap = await API.getUserNamesByIds(userIds);
     } catch (e) {
       debugPrint('Error fetching customers: $e');
     } finally {

@@ -12,6 +12,8 @@ class CustomerList extends StatefulWidget {
 }
 
 class _CustomerListState extends State<CustomerList> {
+  late CustomerController controller;
+
   @override
   void initState() {
     super.initState();
@@ -81,7 +83,7 @@ class _CustomerListState extends State<CustomerList> {
       ),
       floatingActionButton: floatingButton(
         onPressed: () async {
-          final result = await Navigator.push(
+           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (_) => ChangeNotifierProvider(
@@ -90,13 +92,7 @@ class _CustomerListState extends State<CustomerList> {
               ),
             ),
           );
-
-          // Refresh only if a customer was added
-          if (result == true) {
-            final controller =
-            Provider.of<CustomerController>(context, listen: false);
-            controller.loadCustomers();
-          }
+          controller.loadCustomers();
         },
         icon: Icons.add,
       ),

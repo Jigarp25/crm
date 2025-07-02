@@ -73,12 +73,12 @@ class Dashboard extends StatelessWidget{
             subtitle: Text('Lead'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => LeadDetail(lead: lead),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_) => LeadDetail(lead: lead),
+              //   ),
+              // );
             },
           )),
           ...dealResult.map((deal) => ListTile(

@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crm/firebase/Model/Customer.dart';
+import 'package:crm/firebase/Model/Lead.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'FireStore.dart';
 import 'package:crm/firebase/Model/User.dart';
 
@@ -46,4 +48,28 @@ class API{
     return await FireStoreDatabase.fetchAllCustomers();
   }
 
+  //Add Lead
+  static Future<String> addLead(LeadModel data) async{
+    return await FireStoreDatabase.addLeadDocument(data.toJson());
+  }
+
+  //Lead List
+  static Future<List<LeadModel>> getAllLead() async{
+    return await FireStoreDatabase.fetchAllLead();
+  }
+
+  //lead status
+  static Future<void> updateLeadStatus (String leadId, String newStatus) async{
+    return await FireStoreDatabase.updateLeadStatus(leadId, newStatus);
+  }
+
+  //get User name
+  static Future<List<Map<String, dynamic>>> getAllUserNames() async {
+    return await FireStoreDatabase.fetchAllUserNames();
+  }
+
+  //get User name
+  static Future<List<Map<String, dynamic>>> getAllCustomerNames() async {
+    return await FireStoreDatabase.fetchAllCustomerNames();
+  }
 }

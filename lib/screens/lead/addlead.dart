@@ -1,5 +1,4 @@
 import 'package:crm/screens/lead/controller.dart';
-import 'package:crm/services/dummydata.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
@@ -23,14 +22,7 @@ class _AddLeadState extends State<AddLead>{
   }
 
 
-  final List<String> _statusOptions = [
-    'Qualified',
-    'Unqualified',
-    'Converted',
-    'Unconverted',
-  ];
-
-  void _handleSubmit() {
+  Future<void> _handleSubmit() async {
     if (controller.formKey.currentState?.validate() != true) return;
 
     var title = controller.txtTitle.text.trim();
@@ -45,7 +37,12 @@ class _AddLeadState extends State<AddLead>{
       return;
     }
 
-    // TODO: Add Logic to save lead
+    // Logic to save lead
+    var error = await controller.leadSubmit();
+    if (error != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
+      return;
+    }
 
     Navigator.pop(context);
   }
@@ -168,7 +165,7 @@ class _AddLeadState extends State<AddLead>{
               DropdownButtonFormField<String>(
                 value: controller.selectedStatus,
                 decoration: inputDecoration(hint: 'Select Status'),
-                items: _statusOptions
+                items: controller.statusOptions
                     .map((status) => DropdownMenuItem(
                   value: status,
                   child: Text(status),
@@ -190,12 +187,20 @@ class _AddLeadState extends State<AddLead>{
                   )
               ),
               DropdownButtonFormField<String>(
-                value: controller.selectedCustomer,
-                  decoration: inputDecoration(hint: 'Select Customer'),
-                  items: controller.customerList.map((name) => DropdownMenuItem(value: name,child: Text(name))).toList(),
-                  onChanged: (value) {
-                  if (value != null) controller.onCustomerSelected(value);
-                  },
+                value: controller.selectedCustomerId,
+                decoration: inputDecoration(hint: 'Select Customer'),
+                items: controller.customerList
+                    .map<DropdownMenuItem<String>>((customer) => DropdownMenuItem<String>(
+                  value: customer['id'],
+                  child: Text(customer['name'] ?? ''),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  var selected = controller.customerList.firstWhere((c) => c['id'] == value);
+                  controller.selectedCustomerId = selected['id'];
+                  controller.selectedCustomerName = selected['name'];
+                  setState(() {});
+                },
               ),
               vSpace(),
               RichText(
@@ -212,12 +217,21 @@ class _AddLeadState extends State<AddLead>{
               ),
               DropdownButtonFormField<String>(
                 value: controller.selectedAssignedTo,
-                  decoration: inputDecoration(hint: 'Select Assign'),
-                  items: controller.assignedUserList.map((user) => DropdownMenuItem(value: user ,child: Text(user))).toList(),
-                  onChanged: (value){
-                  controller.selectedAssignedTo = value;
-                  }
+                decoration: inputDecoration(hint: 'Select Assign'),
+                items: controller.assignedUserList
+                    .map<DropdownMenuItem<String>>((user) => DropdownMenuItem<String>(
+                  value: user['id'],
+                  child: Text(user['name'] ?? ''),
+                ))
+                    .toList(),
+                onChanged: (value) {
+                  var selected = controller.assignedUserList.firstWhere((u) => u['id'] == value);
+                  controller.selectedAssignedTo = selected['id'];
+                  controller.selectedAssignedName = selected['name'];
+                  setState(() {});
+                },
               ),
+
               RichText(
                   text: TextSpan(
                     text: 'Description',

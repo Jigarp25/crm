@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crm/firebase/Model/Customer.dart';
+import 'package:crm/firebase/Model/Lead.dart';
 import 'package:crm/firebase/helpers/Dependencies.dart';
 import 'package:firebase_auth/firebase_auth.dart'as fa;
 import 'package:flutter/material.dart';
@@ -62,6 +63,7 @@ class FireStoreDatabase{
   await Injector.databaseRef!.collection(Const.userCollection).doc(id).set({...data, Const.keyId: id});
   }
 
+  //Customer
   static Future<String> addCustomerDocument(Map<String,dynamic>data) async {
     DocumentReference docRef = await Injector.databaseRef!
         .collection(Const.customerCollection)
@@ -78,6 +80,64 @@ class FireStoreDatabase{
     
     return querySnapShot.docs.map((doc){
       return CustomerModel.fromJson(doc.data(), doc.id);
+    }).toList();
+  }
+
+  //Add Lead
+  static Future<String> addLeadDocument(Map<String,dynamic>data) async {
+    DocumentReference docRef = await Injector.databaseRef!
+        .collection(Const.leadCollection)
+        .add({...data, Const.keyId: ''});
+
+    await docRef.update({Const.keyId: docRef.id});
+    return docRef.id;
+  }
+
+  static Future<List<LeadModel>> fetchAllLead() async {
+    var querySnapShot = await Injector.databaseRef!
+        .collection(Const.leadCollection)
+        .get();
+
+    return querySnapShot.docs.map((doc){
+      return LeadModel.fromJson(doc.data(), doc.id);
+    }).toList();
+  }
+
+  static Future<void> updateLeadStatus(String leadId, String newStatus) async {
+    try {
+      await Injector.databaseRef!.collection(Const.leadCollection).doc(leadId).update(
+          {Const.keyStatus: newStatus});
+    }catch (e){
+      debugPrint('Error updating lead status: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchAllCustomerNames() async {
+    var snapshot = await Injector.databaseRef!
+        .collection(Const.customerCollection)
+        .get();
+
+    return snapshot.docs.map((doc){
+      var data = doc.data();
+      return{
+        'id':doc.id,
+        'name':data[Const.keyName]?? 'Unnamed',
+      };
+    }).toList();
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchAllUserNames() async {
+    var snapshot = await Injector.databaseRef!
+        .collection(Const.userCollection)
+        .get();
+
+    return snapshot.docs.map((doc){
+      var data = doc.data();
+      return{
+        'id':doc.id,
+        'name':data[Const.keyName]?? 'Unnamed',
+      };
     }).toList();
   }
 }

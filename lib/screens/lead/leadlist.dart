@@ -16,9 +16,18 @@ class LeadList extends StatefulWidget{
 }
 
 class _LeadListState extends State<LeadList>{
-  List<Map<String,String>> _filteredLead = Dummydata.allLeads;
+  late LeadController controller;
+
   String? selectedAssignedTO;
   String? selectedStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    final leadController = Provider.of<LeadController>(context, listen: false);
+    leadController.loadLeads();
+    leadController.loadDropdownData();
+  }
 
   Future<void> _openFilterDialog() async {
     String? tempAssignedTo = selectedAssignedTO;
@@ -132,7 +141,7 @@ class _LeadListState extends State<LeadList>{
                 setState((){
                   selectedAssignedTO = tempAssignedTo;
                   selectedStatus = tempStatus;
-                  _applyFilters();
+                  //_applyFilters();
                 });
                 Navigator.pop(context);
               },
@@ -144,7 +153,7 @@ class _LeadListState extends State<LeadList>{
     );
   }
 
-  void _applyFilters(){
+  /*void _applyFilters(){
     setState(() {
       _filteredLead = Dummydata.allLeads.where((lead){
         final leadAssignedTo = lead['assignedTo']?.toLowerCase();
@@ -161,7 +170,7 @@ class _LeadListState extends State<LeadList>{
         return true;
       }).toList();
     });
-  }
+  }*/
 
   Color _getStatusColor(String status){
     switch (status.toLowerCase()){
@@ -181,76 +190,104 @@ class _LeadListState extends State<LeadList>{
         return Colors.grey;
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    final leads = _filteredLead;
     return Scaffold(
       appBar: AppBar(
         title: Text('Lead list'),
         actions: [
-          IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list_outlined)),
+          IconButton(
+            onPressed: _openFilterDialog,
+            icon: Icon(Icons.filter_list_outlined),
+          ),
           _appSearchAnchor(context),
         ],
       ),
-      body: ListView.builder(
-        itemCount: leads.length,
-        itemBuilder:(context, index){
-          final lead =leads[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal:16, vertical:8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation:2,
-            child: ListTile(
-              title: Text(lead['title']??''),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Company name: ${lead['companyName']}'),
-                    Text('Assigned to : ${lead['assignedTo']}'),
-                  ],
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(lead['status']??'').withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(20),
+      body: Consumer<LeadController>(
+        builder: (context, controller, _) {
+          if (controller.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          var leads = controller.leads;
+          if (leads.isEmpty) {
+            return const Center(child: Text('No leads found'));
+          }
+
+          return ListView.builder(
+            itemCount: leads.length,
+            itemBuilder: (context, index) {
+              final lead = leads[index];
+              return Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: Text(
-                  lead['status']?? '',
-                  style: TextStyle(color: Color(0xff000000),
-                  fontSize: 11),
-                ),
-              ),
-              onTap: () {
-                // Navigate to lead detail
-                Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => LeadDetail(lead : lead),
+                elevation: 2,
+                child: ListTile(
+                  title: Text(lead.title ?? ''),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Company name: ${lead.companyName ?? 'N/A'}'),
+                      Text(
+                        'Assigned To: ${controller.assignedUserList.firstWhere(
+                                  (user) => user['id'] == lead.assignedTo,
+                              orElse: () {
+                                debugPrint(' No match found for: ${lead.assignedTo}');
+                                return {'name': 'Unknown'};
+                              },
+                            )['name']}',
+                      ),
+                    ],
+                  ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(lead.status??'').withValues(alpha: 0.3),
+                      borderRadius: BorderRadius.circular(20),
                     ),
-                );
-              },
-            )
+                    child: Text(
+                      lead.status ?? 'Status',
+                      style: const TextStyle(
+                        color: Color(0xff000000),
+                        fontSize: 11,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LeadDetail(lead: lead),
+                      ),
+                    );
+                    Provider.of<LeadController>(context,listen: false).loadLeads();
+                  },
+                ),
+              );
+            },
           );
         },
       ),
       floatingActionButton: floatingButton(
-       onPressed:() async {
-        // Navigate to lead add screen
-         Navigator.push(context,
-           MaterialPageRoute(
-               builder: (context) => ChangeNotifierProvider(
-                   create:(_) => LeadController()
-                    ..setCustomerList(Dummydata.allCustomers.map((c)=> c['name'] ?? '').toList())
-                    ..setAssignedUserList(Dummydata.allUser.map((u)=> u['name'] ?? '').toList()),
-                   child: const AddLead(),
-               )
-           ),
-         );
-      },
-    icon: Icons.add,
+        onPressed: () async {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => ChangeNotifierProvider(
+                create: (_) => LeadController()..loadDropdownData(),
+                child: const AddLead(),
+              ),
+            ),
+          );
+        },
+        icon: Icons.add,
       ),
     );
   }
+
 
   Widget _appSearchAnchor(BuildContext context) {
     return SearchAnchor(
@@ -294,12 +331,12 @@ class _LeadListState extends State<LeadList>{
               subtitle: Text(subtitleText),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => LeadDetail(lead: lead),
-                  ),
-                );
+                // Navigator.push(
+                //   context,
+                //   MaterialPageRoute(
+                //     builder: (_) => LeadDetail(lead: lead),
+                //   ),
+                // );
               },
             );
           }),
