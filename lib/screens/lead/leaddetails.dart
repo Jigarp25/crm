@@ -28,7 +28,7 @@ class _LeadDetailState extends State<LeadDetail>{
   @override
   void initState(){
     super.initState();
-    Provider.of<LeadController>(context, listen: false).loadDropdownData();
+    Provider.of<LeadController>(context, listen: false).loadDropDownData();
     selectedStatus = widget.lead.status ?? '';
   }
 
@@ -45,20 +45,29 @@ class _LeadDetailState extends State<LeadDetail>{
     var assignedTo = controller.assignedUserList.firstWhere(
         (u) => u['id'] == lead.assignedTo,
       orElse: (){
-          debugPrint('No assigned user found for ID: ${lead.assignedTo}');
+        if (controller.customerList.isEmpty) {
+          debugPrint('️ Customer list is still empty');
+        }
+        debugPrint('No assigned user found for ID: ${lead.assignedTo}');
           return{'name':'unknown'};
+
       },
     );
     var assignedName = assignedTo['name']?? 'Unknown';
-
-    var customer = controller.customerList.firstWhere(
-        (c) => c['id'] == lead.customerId,
-      orElse: (){
-          debugPrint('No Customer match found for Id :${lead.customerId}');
-          return{'name':'unknown'};
-      },
-    );
-     customerName = customer['name'] ?? 'Unknown';
+    var customerName = 'Loading...';
+    if (controller.customerList.isNotEmpty) {
+      var matchedCustomer = controller.customerList.firstWhere(
+            (c) => c['id'] == lead.customerId,
+        orElse: () {
+          debugPrint('No customer found for ID: ${lead.customerId}');
+          return {'name': 'Unknown'};
+        },
+      );
+      customerName = matchedCustomer['name'] ?? 'Unknown';
+      debugPrint('Customer name resolved: $customerName');
+    } else {
+      debugPrint(' Customer list is still empty');
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -140,7 +149,7 @@ class _LeadDetailState extends State<LeadDetail>{
                                 }
                               }
                             },
-                            items: controller.statusOptions.map((status){
+                            items: controller.leadStatusOptions.map((status){
                               return DropdownMenuItem(
                                 value: status,
                                 child: Text(
@@ -164,12 +173,12 @@ class _LeadDetailState extends State<LeadDetail>{
                 width: double.infinity,
                 child: elevatedButton(
                   onPressed: () async {
-                    // Navigator.push(
-                    //   context,
-                    //   MaterialPageRoute(
-                    //     builder: (context) => AddDeal(lead: widget.lead),
-                    //   ),
-                    // );
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => AddDeal(lead: widget.lead),
+                      ),
+                    );
                   },
                   label: 'Convert to Deal',
                 ),

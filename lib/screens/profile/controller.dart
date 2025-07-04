@@ -16,6 +16,9 @@ class ProfileController with ChangeNotifier {
   bool isCurrentPasswordVisible = false;
   bool isConfirmPasswordVisible = false;
 
+  int assignedLeadsCount = 0;
+  int assignedDealsCount = 0;
+
   void toggelVisibility (String field) {
     switch (field) {
       case 'current':
@@ -40,6 +43,10 @@ class ProfileController with ChangeNotifier {
         currentUser = user;
         txtname.text = user.name ?? '';
         txtemail.text = user.email ?? '';
+
+        assignedLeadsCount =await API.getAssignedLeadCount(user.id!);
+        assignedDealsCount = await API.getAssignedDealCount(user.id!);
+
         notifyListeners();
       }
     }catch(e){
@@ -63,35 +70,6 @@ class ProfileController with ChangeNotifier {
       return 'Something went wrong: ${e.toString()}';
     }
   }
-
-
-
-  /*Future<String?> updatePassword() async {
-    try {
-      var user = FirebaseAuth.instance.currentUser;
-      if (user == null) return 'User not logged in';
-
-      var cred = EmailAuthProvider.credential(
-        email: user.email!,
-        password: txtcurrentPassword.text.trim(),
-      );
-
-      await user.reauthenticateWithCredential(cred);
-      await user.updatePassword(txtnewPassword.text.trim());
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: user.email!,
-        password: txtnewPassword.text.trim(),
-      );
-      debugPrint('Login with new password successful');
-      await user.reload();
-      await FirebaseAuth.instance.signOut();
-      clearFields();
-      return null; // success
-    } catch (e) {
-      debugPrint('Update Password Error: $e');
-      return 'Failed to update password';
-    }
-  }*/
 
   void clearFields(){
     txtnewPassword.clear();

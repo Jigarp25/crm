@@ -82,7 +82,7 @@ class DetailRow extends StatelessWidget {
         return Icons.apartment_outlined;
       case 'customer':
         return Icons.people_alt_outlined;
-      case 'number of customers assigned':
+      case 'number of deals assigned':
         return Icons.assignment_ind_outlined;
       case 'number of leads assigned':
         return Icons.assignment_ind_outlined;

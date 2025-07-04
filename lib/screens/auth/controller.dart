@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../firebase/Model/User.dart';
 import 'package:crm/firebase/Apis.dart';
 
@@ -55,6 +56,10 @@ class AuthController with ChangeNotifier {
       if (result.docs.isNotEmpty){
         var doc =result.docs.first;
         currentUser =UserModel.fromJson(doc.data() as Map<String,dynamic>, doc.id);
+
+        var prefs = await SharedPreferences.getInstance();
+        await prefs.setBool('isLoggedIn', true);
+        await prefs.setString('userId',currentUser!.id ?? '');
         return currentUser;
       }
     }catch (e) {

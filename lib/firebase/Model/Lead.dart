@@ -32,7 +32,7 @@ class LeadModel {
     phoneNo: data['phoneNo'],
     companyName: data['companyName'],
     status: data['status'],
-    customerId: data['customerID'],
+    customerId: data['customerId'],
     assignedTo: data['assignedTo'],
     description: data['description'],
     createdAt: data['createdAt'],

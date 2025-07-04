@@ -28,7 +28,7 @@ class Const {
   static var keyStatus                      = 'status';
   static var keyCustomerId                  = 'customerId';
   static var keyDescription                 = 'description';
-  static var keyAssignTo                    = 'assignTo';
+  static var keyAssignTo                    = 'assignedTo';
   //Deals
   static var keyAmount                      = 'amount';
   static var keyClosedDate                  = 'closedDate';

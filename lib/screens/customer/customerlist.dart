@@ -17,7 +17,10 @@ class _CustomerListState extends State<CustomerList> {
   @override
   void initState() {
     super.initState();
-    Provider.of<CustomerController>(context, listen: false).loadCustomers();
+    var customerController=Provider.of<CustomerController>(context, listen: false);
+    customerController.loadCurrentUser().then((_){
+      customerController.loadCustomers();
+    });
   }
 
   @override
@@ -47,35 +50,57 @@ class _CustomerListState extends State<CustomerList> {
             itemCount: customers.length,
             itemBuilder: (context, index) {
               var customer = customers[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    child: Text(
-                      (customer.name?.isNotEmpty ?? false)
-                          ? customer.name![0].toUpperCase()
-                          : '?',
+              var isAdmin = controller.currentUser?.role?.toLowerCase() == 'admin';
+              return GestureDetector(
+                onLongPress: isAdmin
+                  ? () async{
+                    var confirm =await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title:  Text('Delete ${customer.name ?? "this customer"}?'),
+                          content: const Text('This action cannot be undone.'),
+                          actions: [
+                            TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+                            ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
+                          ],
+                        ),
+                    );
+                    if(confirm == true){
+                      await controller.removeCustomer(customer.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Customer deleted')));
+                    }
+                  }
+                  :null,
+                child:  Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16)),
+                  child: ListTile(
+                    leading: CircleAvatar(
+                      child: Text(
+                        (customer.name?.isNotEmpty ?? false)
+                            ? customer.name![0].toUpperCase()
+                            : '?',
+                      ),
+                    ),
+                    title: Text(customer.name ?? 'No Name'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Company Name: ${customer.companyName ?? 'Not Available'}'),
+                        Text('Email: ${customer.email ?? 'Not Available'}'),
+                        Text('Phone: ${customer.phoneNo ?? 'Not Available'}'),
+                      ],
+                    ),
+                    trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CustomerDetail(customer: customer),
+                      ),
                     ),
                   ),
-                  title: Text(customer.name ?? 'No Name'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Company Name: ${customer.companyName ?? 'Not Available'}'),
-                      Text('Email: ${customer.email ?? 'Not Available'}'),
-                      Text('Phone: ${customer.phoneNo ?? 'Not Available'}'),
-                    ],
-                  ),
-                  trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => CustomerDetail(customer: customer),
-                    ),
-                  ),
-                ),
+                )
               );
             },
           );

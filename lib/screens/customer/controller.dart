@@ -4,6 +4,8 @@ import 'package:crm/firebase/Model/Customer.dart';
 import 'package:crm/firebase/Apis.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+import '../../firebase/Model/User.dart';
+
 class CustomerController with ChangeNotifier {
   // Form fields
   var formKey = GlobalKey<FormState>();
@@ -29,6 +31,17 @@ class CustomerController with ChangeNotifier {
     txtPincode.clear();
   }
 
+  UserModel? currentUser;
+
+  Future<void> loadCurrentUser() async {
+    try {
+      currentUser = await API.getCurrentUser();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('Failed to load current user: $e');
+    }
+  }
+
   List<CustomerModel> customers = [];
   List<CustomerModel> allCustomers = [];
   List<CustomerModel> filteredCustomers = [];
@@ -47,6 +60,16 @@ class CustomerController with ChangeNotifier {
         .toLowerCase()
         .contains(query.toLowerCase()))
         .toList();
+  }
+
+  Future<void> removeCustomer(String id) async{
+    try{
+      await API.removeCustomer(id);
+      customers.removeWhere((c) => c.id == id);
+      notifyListeners();
+    } catch(e){
+      debugPrint('Delete Customer Error: $e');
+    }
   }
 
   // Submit customer

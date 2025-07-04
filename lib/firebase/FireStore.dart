@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crm/firebase/Model/Customer.dart';
+import 'package:crm/firebase/Model/Deal.dart';
 import 'package:crm/firebase/Model/Lead.dart';
 import 'package:crm/firebase/helpers/Dependencies.dart';
 import 'package:firebase_auth/firebase_auth.dart'as fa;
@@ -37,6 +38,24 @@ class FireStoreDatabase{
         .get();
 
     return snapshots.docs;
+  }
+
+  static Future<int> getAssignedLeadCount(String userId) async{
+    var result = await Injector.databaseRef!
+        .collection(Const.leadCollection)
+        .where(Const.keyAssignTo,isEqualTo: userId)
+        .get();
+
+    return result.docs.length;
+  }
+
+  static Future<int> getAssignedDealCount(String userId) async{
+    var result = await Injector.databaseRef!
+        .collection(Const.dealCollection)
+        .where(Const.keyAssignTo,isEqualTo: userId)
+        .get();
+
+    return result.docs.length;
   }
 
   static Future<void> updateUserPassword(String currentPassword, String newPassword)async{
@@ -83,7 +102,15 @@ class FireStoreDatabase{
     }).toList();
   }
 
-  //Add Lead
+  static Future<void> removeCustomer(String id) async{
+    await Injector.databaseRef!
+        .collection(Const.customerCollection)
+        .doc(id)
+        .delete();
+  }
+
+
+  // Lead
   static Future<String> addLeadDocument(Map<String,dynamic>data) async {
     DocumentReference docRef = await Injector.databaseRef!
         .collection(Const.leadCollection)
@@ -140,4 +167,100 @@ class FireStoreDatabase{
       };
     }).toList();
   }
+
+  static Future<void> removeLead(String leadId) async{
+    await Injector.databaseRef!
+        .collection(Const.leadCollection)
+        .doc(leadId)
+        .delete();
+  }
+
+  static Future<List<LeadModel>> fetchFilteredLeads({String? assignedTo, String? status}) async{
+    Query<Map<String, dynamic>> query =Injector.databaseRef!.collection(Const.leadCollection);
+
+    if(assignedTo != null)
+      query = query.where(Const.keyAssignTo, isEqualTo: assignedTo);
+    if(status != null)
+      query = query.where(Const.keyStatus, isEqualTo: status);
+
+    var snapshot = await query.get();
+    return snapshot.docs.map((doc) => LeadModel.fromJson(doc.data(), doc.id)).toList();
+  }
+
+  //Deal
+  static Future<String> addDealDocument(Map<String,dynamic>data) async {
+    DocumentReference docRef = await Injector.databaseRef!
+        .collection(Const.dealCollection)
+        .add({...data, Const.keyId: ''});
+
+    await docRef.update({Const.keyId: docRef.id});
+    return docRef.id;
+  }
+
+  static Future<void> removeDeal(String id) async{
+    await Injector.databaseRef!
+        .collection(Const.dealCollection)
+        .doc(id)
+        .delete();
+  }
+
+  static Future<List<DealModel>> fetchAllDeal() async {
+    var querySnapShot = await Injector.databaseRef!
+        .collection(Const.dealCollection)
+        .get();
+
+    return querySnapShot.docs.map((doc) {
+      return DealModel.fromJson(doc.data(), doc.id);
+    }).toList();
+  }
+
+  static Future<void> updateDealStatus(String dealId, String newStatus) async {
+    try {
+      await Injector.databaseRef!.collection(Const.dealCollection).doc(dealId).update(
+          {Const.keyStatus: newStatus});
+    }catch (e){
+      debugPrint('Error updating deal status: $e');
+      rethrow;
+    }
+  }
+
+  static Future<void> updateDealAmount(String dealId, double newAmount) async {
+    try {
+      await Injector.databaseRef!.collection(Const.dealCollection).doc(dealId).update(
+          {Const.keyAmount: newAmount});
+    }catch (e){
+      debugPrint('Error updating deal Amount: $e');
+      rethrow;
+    }
+  }
+
+  static Future<List<DealModel>> fetchFilteredDeals({String? assignedTo, String? status}) async{
+    Query<Map<String, dynamic>> query =Injector.databaseRef!.collection(Const.dealCollection);
+
+    if(assignedTo != null)
+      query = query.where(Const.keyAssignTo, isEqualTo: assignedTo);
+    if(status != null)
+      query = query.where(Const.keyStatus, isEqualTo: status);
+
+    var snapshot = await query.get();
+    return snapshot.docs.map((doc) => DealModel.fromJson(doc.data(), doc.id)).toList();
+  }
+
+  // static Future<List<QueryDocumentSnapshot<Map<String,dynamic>>>> searchDeals(String query) async {
+  //   var snapshot = await Injector.databaseRef!
+  //       .collection(Const.dealCollection)
+  //       .where(Const.keyTitle, isGreaterThanOrEqualTo: query)
+  //       .where(Icons.title,isLessThanOrEqualTo: query + '\uf8ff')
+  //       .get();
+  //
+  //   return snapshot.docs;
+  // }
+
+  static Future<void> updateDealClosedDate(String dealId, Map<String,dynamic> data)async{
+    await Injector.databaseRef!
+        .collection(Const.dealCollection)
+        .doc(dealId)
+        .update(data);
+  }
+
 }

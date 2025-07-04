@@ -1,9 +1,10 @@
-import 'package:crm/utils/ui_utils.dart';
+import 'package:crm/screens/deal/controller.dart';
+import 'package:crm/widgets/search.dart';
 import 'package:flutter/material.dart';
-//import 'package:filter_list/filter_list.dart';
-import '/services/dummydata.dart';
+import 'package:provider/provider.dart';
+import '../../firebase/Model/Deal.dart';
+import '../../utils/filterdialog.dart';
 import 'dealdetail.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 
 class DealList extends StatefulWidget {
   const DealList({super.key});
@@ -13,156 +14,68 @@ class DealList extends StatefulWidget {
 }
 
 class _DealListState extends State<DealList> {
-  List<Map<String, String>> _filteredDeals = Dummydata.allDeals;
+  late DealController _dealController;
+  List<DealModel> _filteredDeals = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _dealController = Provider.of<DealController>(context, listen: false);
+
+    _dealController = Provider.of<DealController>(context, listen: false);
+    _dealController.loadDropdownCustomerData().then((_) {
+      _dealController.loadDropdownAssignData().then((_){
+        _dealController.loadCurrentUser();
+      });
+    });
+  }
+
+  @override
+  void didChangeDependencies(){
+    super.didChangeDependencies();
+    _dealController = Provider.of<DealController>(context,listen: false);
+    _dealController.loadDeals();
+  }
+
   String? selectedAssignedTo;
   String? selectedStatus;
 
   Future<void> _openFilterDialog() async {
-    String? tempAssignedTo = selectedAssignedTo;
-    String? tempStatus = selectedStatus;
-
-    final assignedList = Dummydata.allDeals
-        .map((e) => e['assignedTo'])
-        .whereType<String>()
-        .toSet()
-        .toList();
-    
-    final statusList = Dummydata.allDealStatus;
-
-    await showDialog(
+    final result = await showFilterDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Color(0xfffef7ff),
-          title: const Text('Filter Deals'),
-            content: SizedBox(
-              width: double.maxFinite,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownSearch<String>(
-                    items: assignedList,
-                    selectedItem: tempAssignedTo ,
-                    popupProps: PopupProps.menu(
-                      showSearchBox: true,
-                      searchFieldProps: TextFieldProps(
-                        decoration: InputDecoration(
-                          hintText: 'Search',
-                          filled:true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 12,vertical: 5),
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                        ),
-                      ),
-                      menuProps: MenuProps(
-                        backgroundColor: Colors.white,
-                        borderRadius: BorderRadius.circular(16)
-                      ),
-                    ),
-                    dropdownDecoratorProps: const DropDownDecoratorProps(
-                      dropdownSearchDecoration: InputDecoration(
-                        labelText: 'Assigned',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(16))
-                        ),
-                        filled: true,
-                        fillColor: Color(0xffffffff)
-                      ),
-                    ),
-                    onChanged: (value){
-                      tempAssignedTo = value?.toLowerCase();
-                    },
-                    clearButtonProps: ClearButtonProps(isVisible: true),
-                  ),
-                vSpace(),
-                DropdownSearch<String>(
-                  items: statusList,
-                  selectedItem: tempStatus ,
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                    searchFieldProps: TextFieldProps(
-                      decoration: InputDecoration(
-                        hintText: 'Search',
-                        filled:true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12,vertical: 5),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                    menuProps: MenuProps(
-                        backgroundColor: Colors.white,
-                        borderRadius: BorderRadius.circular(16)
-                    ),
-                  ),
-                  dropdownDecoratorProps: const DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
-                      labelText: 'Status ',
-                      border: OutlineInputBorder(
-                          borderRadius: BorderRadius.all(Radius.circular(16))
-                      ),
-                      filled: true,
-                      fillColor: Color(0xffffffff)
-                    ),
-                  ),
-                  onChanged: (value){
-                    tempStatus = value == 'All' ? null : value;
-                  },
-                  clearButtonProps: const ClearButtonProps(isVisible: true),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Color(0xff5b3dde),
-              ),
-              onPressed: (){
-                setState((){
-                  selectedAssignedTo = tempAssignedTo;
-                  selectedStatus = tempStatus;
-                  _applyFilters();
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Apply',style: TextStyle(color: Colors.white),),
-            ),
-          ],
-        );
-      },
+      statusList: _dealController.dealStatus,
+      currentAssignedId: selectedAssignedTo,
+      currentStatus: selectedStatus,
+      assignedUserList: _dealController.assignedUserList,
     );
-  }
+
+    String? assignedTo = result['assignedTo'];
+    String? status = result['status'];
 
 
-  void _applyFilters(){
-    setState(() {
-      _filteredDeals = Dummydata.allDeals.where((deal){
-        final dealAssignedTo = deal['assignedTo']?.toLowerCase();
-        final dealStatus = deal['status']?.toLowerCase();
-        final matchAssigned = selectedAssignedTo == null || dealAssignedTo == selectedAssignedTo?.toLowerCase();
-        final matchStatus = selectedStatus == null || dealStatus ==  selectedStatus?.toLowerCase();
-        if(selectedAssignedTo != null &&  selectedStatus != null){
-          return matchStatus && matchAssigned;
-        }else if(selectedAssignedTo != null){
-          return matchAssigned;
-        }else if(selectedStatus != null){
-          return matchStatus;
-        }
-          return true;
-      }).toList();
-    });
+
+    assignedTo = (assignedTo != null && assignedTo.trim().isEmpty) ? null : assignedTo;
+    status = (status != null && status.trim().isEmpty) ? null : status;
+
+    if (assignedTo != selectedAssignedTo || status != selectedStatus) {
+      setState(() {
+        selectedAssignedTo = assignedTo;
+        selectedStatus = status;
+      });
+
+      await _dealController.applyDealFilters(assignedTo: selectedAssignedTo,status: selectedStatus,);
+    }
   }
+
 
   Color _getStatusColor(String status) {
     switch (status.toLowerCase()) {
+      case 'proposal sent':
+        return Colors.orange;
+      case 'negotiation':
+        return Colors.blueAccent;
+      case 'contract sent':
+        return Colors.purple;
       case 'won':
         return Colors.green;
       case 'lost':
@@ -174,112 +87,127 @@ class _DealListState extends State<DealList> {
 
   @override
   Widget build(BuildContext context) {
+    return Consumer<DealController>(
+      builder: (context, controller, _) {
+        if (controller.isLoading) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Deal List'),
-        actions: [
-          IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list)),
-          _appSearchAnchor(context),
-        ],
-      ),
-      body: ListView.builder(
-        itemCount: _filteredDeals.length,
-        itemBuilder: (context, index) {
-          final deal = _filteredDeals[index];
-          return Card(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            elevation: 2,
-            child: ListTile(
-              title: Text(deal['title'] ?? ''),
-              subtitle: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('Assigned to: ${deal['assignedTo']}'),
-                  Text('Customer: ${deal['customer']}'),
-                  Text('Amount: ₹${deal['amount']}'),
-                ],
-              ),
-              trailing: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _getStatusColor(deal['status'] ?? '').withAlpha(80),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Text(
-                  deal['status'] ?? '',
-                  style: const TextStyle(color: Colors.black, fontSize: 11),
-                ),
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => DealDetail(deal: deal),
+        _filteredDeals = controller.deals;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Deal List'),
+            actions: [
+              IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list)),
+              _appSearchAnchor(context),
+            ],
+
+          ),
+          body: ListView.builder(
+            itemCount: _filteredDeals.length,
+            itemBuilder: (context, index) {
+              var deal = _filteredDeals[index];
+              var isAdmin = controller.currentUser?.role?.toLowerCase() == 'admin';
+              return GestureDetector(
+                  onLongPress: isAdmin
+                      ? () async{
+                    var confirm =await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Delete Deal from ${deal.companyName}'),
+                        content: const Text('Are you sure you want to delete lead ? This action cannot Be Undone.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+                          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
+                        ],
+                      ),
+                    );
+                    if(confirm == true){
+                      await controller.removeDeal(deal.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('deal deleted')));
+                    }
+                  }
+                  :null,
+                child:  Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 2,
+                  child: ListTile(
+                    title: Text(deal.title ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Assigned To: ${controller.assignedUserList.firstWhere(
+                                (user) => user['id'] == deal.assignedTo,
+                            orElse: () {
+                                  debugPrint(' No match found for: ${deal.assignedTo}');
+                                  return {'name': 'Unknown'};
+                                  },
+                          )['name']}',
+                        ),
+                        Text(
+                          'Customer Name: ${controller.customerList.firstWhere(
+                              (customer) => customer['id'] == deal.customerId,
+                          orElse: () {
+                            debugPrint(' No match found for: ${deal.customerId}');
+                            return {'name': 'Unknown'};
+                          },
+                        )['name']}',
+                        ),
+                        Text('Amount: ₹${deal.amount?.toStringAsFixed(2) ?? '0'}'),
+                      ],
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(deal.status ?? '').withAlpha(80),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        deal.status ?? '',
+                        style: const TextStyle(color: Colors.black, fontSize: 11),
+                      ),
+                    ),
+                    onTap: ()  async{
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => DealDetail(deal: deal),
+                        ),
+                      );
+                      Provider.of<DealController>(context,listen: false).loadDeals();
+                    },
                   ),
-                );
-              },
-            ),
-          );
-        },
-      ),
+                ),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 
   Widget _appSearchAnchor(BuildContext context) {
-    return SearchAnchor(
-      builder: (context, controller) {
-        return IconButton(
-          onPressed: () => controller.openView(),
-          icon: const Icon(Icons.search),
+    return SharedSearch(data: _dealController.getDealSearchList(), onSelect: (dealMap){
+      var title = dealMap['title'];
+      var match = _dealController.deals.firstWhere(
+          (d) => d.title == title,
+        orElse: () => DealModel()
+      );
+
+      if(match.id != null){
+        Navigator.push(context,
+          MaterialPageRoute(
+            builder: (_) => DealDetail(deal: match),
+          ),
         );
-      },
-      suggestionsBuilder: (context, controller) async {
-        final query = controller.text.toLowerCase();
-        await Future.delayed(const Duration(milliseconds: 300));
-
-        if (query.isEmpty) return [];
-
-        final dealResult = Dummydata.allDeals.where((deal) {
-          final title = deal['title']?.toLowerCase() ?? '';
-          final assignedTo = deal['assignedTo']?.toLowerCase() ?? '';
-          final customer = deal['customer']?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              assignedTo.contains(query) ||
-              customer.contains(query);
-        }).toList();
-
-        final options = <Widget>[
-          ...dealResult.map((deal){
-            final title = deal['title'] ?? '';
-            final assignedTo = deal['assignedTo'] ?? '';
-            final customer = deal['customer'] ?? '';
-            String subtitleText = '';
-
-            if (customer.toLowerCase().contains(query)){
-              subtitleText = 'Customer: $customer';
-            } else if(assignedTo.toLowerCase().contains(query)){
-              subtitleText = 'Assigned: $assignedTo';
-            }
-
-            return ListTile(
-              title: Text(title),
-              subtitle: Text(subtitleText),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (_) => DealDetail(deal: deal)
-                  ),
-                );
-              },
-            );
-          }),
-        ];
-        return options;
-      },
+      }else{
+        debugPrint('Deal not found for title: $title');
+      }
+    },
     );
   }
+
 }

@@ -1,12 +1,12 @@
+import 'package:crm/firebase/Model/Lead.dart';
 import 'package:crm/screens/lead/controller.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:crm/screens/lead/leaddetails.dart';
+import 'package:crm/widgets/search.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../utils/ui_utils.dart';
+import '../../utils/filterdialog.dart';
 import '../../widgets/buttons.dart';
 import 'addlead.dart';
-import '/services/dummydata.dart';
 
 class LeadList extends StatefulWidget{
   const LeadList({super.key});
@@ -18,159 +18,52 @@ class LeadList extends StatefulWidget{
 class _LeadListState extends State<LeadList>{
   late LeadController controller;
 
-  String? selectedAssignedTO;
+  String? selectedAssignedTo;
   String? selectedStatus;
 
   @override
   void initState() {
     super.initState();
-    final leadController = Provider.of<LeadController>(context, listen: false);
-    leadController.loadLeads();
-    leadController.loadDropdownData();
+    controller = Provider.of<LeadController>(context, listen: false);
+    
+    controller.loadDropdownCustomerData().then((_) {
+      controller.loadDropdownAssignData().then((_) {
+        controller.loadCurrentUser().then((_) {
+          controller.loadLeads();
+        });
+      });
+    });
   }
 
   Future<void> _openFilterDialog() async {
-    String? tempAssignedTo = selectedAssignedTO;
-    String? tempStatus = selectedStatus;
-
-    final assignedList = Dummydata.allLeads
-        .map((e) => e['assignedTo'])
-        .whereType<String>()
-        .toSet()
-        .toList();
-
-    final statusList = Dummydata.allLeadStatus;
-
-    await showDialog(
+    final result = await showFilterDialog(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          backgroundColor: Color(0xfffef7ff),
-          title: const Text('Filter Leads'),
-          content: SizedBox(
-            width: double.maxFinite,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                DropdownSearch<String>(
-                  items: assignedList,
-                  selectedItem: tempAssignedTo ,
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                    searchFieldProps: TextFieldProps(
-                      decoration: InputDecoration(
-                        hintText: 'Search',
-                        filled:true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12,vertical: 5),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                    menuProps: MenuProps(
-                        backgroundColor: Colors.white,
-                        borderRadius: BorderRadius.circular(16)
-                    ),
-                  ),
-                  dropdownDecoratorProps: const DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
-                        labelText: 'Assigned',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(16))
-                        ),
-                        filled: true,
-                        fillColor: Color(0xffffffff)
-                    ),
-                  ),
-                  onChanged: (value){
-                    tempAssignedTo = value?.toLowerCase();
-                  },
-                  clearButtonProps: ClearButtonProps(isVisible: true),
-                ),
-                vSpace(),
-                DropdownSearch<String>(
-                  items: statusList,
-                  selectedItem: tempStatus ,
-                  popupProps: PopupProps.menu(
-                    showSearchBox: true,
-                    searchFieldProps: TextFieldProps(
-                      decoration: InputDecoration(
-                        hintText: 'Search',
-                        filled:true,
-                        fillColor: Colors.white,
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 12,vertical: 5),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                      ),
-                    ),
-                    menuProps: MenuProps(
-                        backgroundColor: Colors.white,
-                        borderRadius: BorderRadius.circular(16)
-                    ),
-                  ),
-                  dropdownDecoratorProps: const DropDownDecoratorProps(
-                    dropdownSearchDecoration: InputDecoration(
-                        labelText: 'Status ',
-                        border: OutlineInputBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(16))
-                        ),
-                        filled: true,
-                        fillColor: Color(0xffffffff)
-                    ),
-                  ),
-                  onChanged: (value){
-                    tempStatus = value == 'All' ? null : value?.toLowerCase();
-                  },
-                  clearButtonProps: const ClearButtonProps(isVisible: true),
-                ),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xffffffff)
-              ),
-              onPressed: (){
-                setState((){
-                  selectedAssignedTO = tempAssignedTo;
-                  selectedStatus = tempStatus;
-                  //_applyFilters();
-                });
-                Navigator.pop(context);
-              },
-              child: const Text('Apply'),
-            ),
-          ],
-        );
-      },
+      statusList: controller.leadStatusOptions,
+      currentAssignedId: selectedAssignedTo,
+      currentStatus: selectedStatus,
+      assignedUserList: controller.assignedUserList,
     );
+
+    String? assignedTo = result['assignedTo'];
+    String? status = result['status'];
+
+    assignedTo = (assignedTo != null && assignedTo.trim().isEmpty) ? null : assignedTo;
+    status = (status != null && status.trim().isEmpty) ? null : status;
+
+    if (assignedTo != selectedAssignedTo || status != selectedStatus) {
+      setState(() {
+        selectedAssignedTo = assignedTo;
+        selectedStatus = status;
+      });
+
+      await controller.applyLeadFilters(
+        assignedTo: selectedAssignedTo,
+        status: selectedStatus,
+      );
+    }
   }
 
-  /*void _applyFilters(){
-    setState(() {
-      _filteredLead = Dummydata.allLeads.where((lead){
-        final leadAssignedTo = lead['assignedTo']?.toLowerCase();
-        final leadStatus = lead['status']?.toLowerCase();
-        final matchAssigned = selectedAssignedTO == null || leadAssignedTo == selectedAssignedTO;
-        final matchStatus = selectedStatus == null || leadStatus ==  selectedStatus;
-        if(selectedAssignedTO != null &&  selectedStatus != null){
-          return matchStatus && matchAssigned;
-        }else if(selectedAssignedTO != null){
-          return matchAssigned;
-        }else if(selectedStatus != null){
-          return matchStatus;
-        }
-        return true;
-      }).toList();
-    });
-  }*/
+
 
   Color _getStatusColor(String status){
     switch (status.toLowerCase()){
@@ -197,10 +90,7 @@ class _LeadListState extends State<LeadList>{
       appBar: AppBar(
         title: Text('Lead list'),
         actions: [
-          IconButton(
-            onPressed: _openFilterDialog,
-            icon: Icon(Icons.filter_list_outlined),
-          ),
+          IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list_outlined),),
           _appSearchAnchor(context),
         ],
       ),
@@ -219,52 +109,83 @@ class _LeadListState extends State<LeadList>{
             itemCount: leads.length,
             itemBuilder: (context, index) {
               final lead = leads[index];
-              return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                elevation: 2,
-                child: ListTile(
-                  title: Text(lead.title ?? ''),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Company name: ${lead.companyName ?? 'N/A'}'),
-                      Text(
-                        'Assigned To: ${controller.assignedUserList.firstWhere(
-                                  (user) => user['id'] == lead.assignedTo,
-                              orElse: () {
-                                debugPrint(' No match found for: ${lead.assignedTo}');
-                                return {'name': 'Unknown'};
-                              },
-                            )['name']}',
-                      ),
-                    ],
-                  ),
-                  trailing: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(lead.status??'').withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      lead.status ?? 'Status',
-                      style: const TextStyle(
-                        color: Color(0xff000000),
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LeadDetail(lead: lead),
+              var isAdmin = controller.currentUser?.role?.toLowerCase() == 'admin';
+              return GestureDetector(
+                  onLongPress: isAdmin
+                      ? () async{
+                    var confirm =await showDialog<bool>(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: Text('Delete Lead from ${lead.companyName}'),
+                        content: Text('Are you sure you want to delete lead ? This action cannot Be Undone.'),
+                        actions: [
+                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+                          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
+                        ],
                       ),
                     );
-                    Provider.of<LeadController>(context,listen: false).loadLeads();
-                  },
+                    if(confirm == true){
+                      await controller.removeLead(lead.id!);
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Customer deleted')));
+                    }
+                  }
+                  :null,
+                child:  Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 2,
+                  child: ListTile(
+                    title: Text(lead.title ?? ''),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Company name: ${lead.companyName ?? 'N/A'}'),
+                        Text(
+                          'Assigned To: ${controller.assignedUserList.firstWhere(
+                                    (user) => user['id'] == lead.assignedTo,
+                                orElse: () {
+                                  debugPrint(' No match found for: ${lead.assignedTo}');
+                                  return {'name': 'Unknown'};
+                                },
+                              )['name']}',
+                        ),
+                        Text(
+                          'Customer Name: ${controller.customerList.firstWhere(
+                            (customer) => customer['id'] == lead.customerId,
+                              orElse: () {
+                                debugPrint(' No match found for: ${lead.customerId}');
+                                return {'name': 'Unknown'};
+                              },
+                          )['name']}',
+                        ),
+                      ],
+                    ),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: _getStatusColor(lead.status??'').withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        lead.status ?? 'Status',
+                        style: const TextStyle(
+                          color: Color(0xff000000),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LeadDetail(lead: lead),
+                        ),
+                      );
+                      Provider.of<LeadController>(context,listen: false).loadLeads();
+                    },
+                  ),
                 ),
               );
             },
@@ -277,7 +198,7 @@ class _LeadListState extends State<LeadList>{
             context,
             MaterialPageRoute(
               builder: (context) => ChangeNotifierProvider(
-                create: (_) => LeadController()..loadDropdownData(),
+                create: (_) => LeadController()..loadDropDownData(),
                 child: const AddLead(),
               ),
             ),
@@ -290,59 +211,33 @@ class _LeadListState extends State<LeadList>{
 
 
   Widget _appSearchAnchor(BuildContext context) {
-    return SearchAnchor(
-      builder: ( context,controller) {
-        return IconButton(
-          icon: const Icon(Icons.search),
-          onPressed: () => controller.openView(),
-        );
-      },
-      suggestionsBuilder:
-          (BuildContext context, SearchController controller) async {
-        final query = controller.text.toLowerCase();
-        await Future.delayed(Duration(milliseconds: 300));
+    return Consumer<LeadController>(
+      builder: (context, controller, _) {
+        if (controller.leads.isEmpty || controller.customerList.isEmpty || controller.assignedUserList.isEmpty) {
+          return const SizedBox(); // or a disabled icon
+        }
 
-        if (query.isEmpty) return [];
-
-        final leadResults = Dummydata.allLeads.where((lead) {
-          final title = lead['title']?.toLowerCase() ?? '';
-          final assignedTo = lead['assignedTo']?.toLowerCase() ?? '';
-          final customer = lead['customer']?.toLowerCase() ?? '';
-          return title.contains(query) ||
-              assignedTo.contains(query) ||
-              customer.contains(query);
-        }).toList();
-
-        final options = <Widget>[
-          ...leadResults.map((lead) {
-            final title = lead['title'] ?? '';
-            final assignedTo = lead['assignedTo'] ?? '';
-            final customer = lead['customer'] ?? '';
-            String subtitleText = '';
-
-            if (customer.toLowerCase().contains(query)) {
-              subtitleText = 'Customer : $customer';
-            } else if (assignedTo.toLowerCase().contains(query)) {
-              subtitleText = 'Assigned: $assignedTo';
-            }
-
-            return ListTile(
-              title: Text(title),
-              subtitle: Text(subtitleText),
-              onTap: () {
-                Navigator.pop(context);
-                // Navigator.push(
-                //   context,
-                //   MaterialPageRoute(
-                //     builder: (_) => LeadDetail(lead: lead),
-                //   ),
-                // );
-              },
+        return SharedSearch(
+          data: controller.getleadSearchList(),
+          onSelect: (leadMap) {
+            var title = leadMap['title'];
+            var match = controller.leads.firstWhere(
+                  (l) => l.title == title,
+              orElse: () => LeadModel(),
             );
-          }),
-        ];
-        return options;
+
+            if (match.id != null) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => LeadDetail(lead: match)),
+              );
+            } else {
+              debugPrint('Lead not found for title: $title');
+            }
+          },
+        );
       },
     );
   }
+
 }

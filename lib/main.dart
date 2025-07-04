@@ -1,5 +1,6 @@
 import 'package:crm/firebase/helpers/Dependencies.dart';
 import 'package:crm/screens/customer/controller.dart';
+import 'package:crm/screens/deal/controller.dart';
 import 'package:crm/screens/lead/controller.dart';
 import 'package:crm/screens/profile/controller.dart';
 import 'package:flutter/material.dart';
@@ -23,6 +24,7 @@ void main() async {
           ChangeNotifierProvider(create: (_) => CustomerController()),
           ChangeNotifierProvider(create: (_) => ProfileController()),
           ChangeNotifierProvider(create: (_) => LeadController()),
+          ChangeNotifierProvider(create: (_) => DealController())
         ],
         child: const crm()
     ),

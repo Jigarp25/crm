@@ -12,7 +12,7 @@ class Dashboard extends StatelessWidget{
       appBar: AppBar(
         title: Text('Dashboard'),
         actions: [
-          _AppSearchAnchor(context),
+     //     _AppSearchAnchor(context),
         ],
       ),
         body: SingleChildScrollView(
@@ -30,7 +30,7 @@ class Dashboard extends StatelessWidget{
     );
   }
 
-  Widget _AppSearchAnchor(BuildContext context) {
+  /*Widget _AppSearchAnchor(BuildContext context) {
     return SearchAnchor(
       builder: (BuildContext context, SearchController controller) {
         return IconButton(
@@ -86,17 +86,17 @@ class Dashboard extends StatelessWidget{
             subtitle: Text('Deal'),
             onTap: () {
               Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_)=> DealDetail(deal : deal),
-                ),
-              );
+              // Navigator.push(
+              //   context,
+              //   MaterialPageRoute(
+              //     builder: (_)=> DealDetail(deal : deal),
+              //   ),
+              // );
             },
           ))
         ];
         return options;
       },
     );
-  }
+  }*/
 }

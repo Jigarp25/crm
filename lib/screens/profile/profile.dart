@@ -1,6 +1,7 @@
 import 'package:crm/screens/profile/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:crm/theme/colors.dart';
 import 'package:crm/widgets/buttons.dart';
@@ -38,8 +39,8 @@ class _ProfileState extends State<Profile>{
         var email = user.email ?? 'Not Available';
         var phone = user.phoneNo ?? 'Not Available';
         var role = user.role ?? 'User';
-        var assigned = '4';
-        var customer = '5';
+        var leads = controller.assignedLeadsCount;
+        var deals = controller.assignedDealsCount;
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -67,18 +68,15 @@ class _ProfileState extends State<Profile>{
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Account Information:',
-                          style: TextStyle(fontSize: 24)),
+                      const Text('Account Information:', style: TextStyle(fontSize: 24)),
                       vSpace(12),
                       DetailRow(label: 'Email', value: email),
                       vSpace(12),
                       DetailRow(label: 'Phone', value: phone),
                       vSpace(12),
-                      DetailRow(
-                          label: 'Number of Leads Assigned', value: assigned),
+                      DetailRow(label: 'Number of Leads Assigned', value: leads.toString()),
                       vSpace(12),
-                      DetailRow(label: 'Number of Customers Assigned',
-                          value: customer),
+                      DetailRow(label: 'Number of Deals Assigned', value: deals.toString()),
                       vSpace(12),
                     ],
                   ),
@@ -127,6 +125,7 @@ class _ProfileState extends State<Profile>{
                     child: elevatedButton(
                       label: 'Log Out',
                       onPressed: () async {
+                        await FirebaseAuth.instance.signOut();
                         Navigator.pushReplacement(
                           context,
                           MaterialPageRoute(

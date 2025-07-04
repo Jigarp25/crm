@@ -16,7 +16,7 @@ class _MainScreenState extends State<MainScreen> {
   int _currentIndex = 0;
 
   List<Widget> get _screens => [
-    Dashboard(),
+    //Dashboard(),
     CustomerList(),
     LeadList(),
     DealList(),
@@ -35,11 +35,11 @@ class _MainScreenState extends State<MainScreen> {
         selectedItemColor: const Color(0xff5B3DDE),
         unselectedItemColor: Colors.grey.shade700,
         items: const [
-          BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard_outlined),
-            label: 'Dashboard',
-            activeIcon: Icon(Icons.dashboard)
-          ),
+          // BottomNavigationBarItem(
+          //   icon: Icon(Icons.dashboard_outlined),
+          //   label: 'Dashboard',
+          //   activeIcon: Icon(Icons.dashboard)
+          // ),
           BottomNavigationBarItem(
             icon: Icon(Icons.people_alt_outlined),
             label: 'Customers',

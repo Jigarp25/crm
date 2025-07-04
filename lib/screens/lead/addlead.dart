@@ -16,6 +16,13 @@ class _AddLeadState extends State<AddLead>{
   late LeadController controller;
 
   @override
+  void initState() {
+    super.initState();
+    controller.loadDropDownData();
+  }
+
+
+  @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     controller = Provider.of<LeadController>(context);
@@ -27,10 +34,11 @@ class _AddLeadState extends State<AddLead>{
 
     var title = controller.txtTitle.text.trim();
     var assignedTo = controller.selectedAssignedTo;
+    var customerId = controller.selectedCustomerId;
     var status = controller.selectedStatus;
 
 
-    if (title.isEmpty || assignedTo == null || status == null) {
+    if (title.isEmpty || assignedTo == null ||customerId == null|| status == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
       );
@@ -111,7 +119,6 @@ class _AddLeadState extends State<AddLead>{
                 (value == null || value.trim().isEmpty) ? 'Company name is required' : null,
                 decoration: inputDecoration(hint: 'Company Name'),
               ),
-
               vSpace(),
               RichText(
                   text: TextSpan(
@@ -149,7 +156,6 @@ class _AddLeadState extends State<AddLead>{
                   controller.txtPhone.text = phone.completeNumber;
                   },
               ),
-              vSpace(),
               RichText(
                   text: TextSpan(
                     text: 'Status',
@@ -165,7 +171,7 @@ class _AddLeadState extends State<AddLead>{
               DropdownButtonFormField<String>(
                 value: controller.selectedStatus,
                 decoration: inputDecoration(hint: 'Select Status'),
-                items: controller.statusOptions
+                items: controller.leadStatusOptions
                     .map((status) => DropdownMenuItem(
                   value: status,
                   child: Text(status),
@@ -180,7 +186,7 @@ class _AddLeadState extends State<AddLead>{
                     style: const TextStyle( fontSize: 18,color: Color(0xff000000)),
                     children: const[
                       TextSpan(
-                        text: '',
+                        text: '*',
                         style: TextStyle(color: Color(0xffff0000)),
                       ),
                     ],
@@ -193,13 +199,11 @@ class _AddLeadState extends State<AddLead>{
                     .map<DropdownMenuItem<String>>((customer) => DropdownMenuItem<String>(
                   value: customer['id'],
                   child: Text(customer['name'] ?? ''),
-                ))
-                    .toList(),
+                )).toList(),
                 onChanged: (value) {
                   var selected = controller.customerList.firstWhere((c) => c['id'] == value);
                   controller.selectedCustomerId = selected['id'];
                   controller.selectedCustomerName = selected['name'];
-                  setState(() {});
                 },
               ),
               vSpace(),
@@ -231,7 +235,6 @@ class _AddLeadState extends State<AddLead>{
                   setState(() {});
                 },
               ),
-
               RichText(
                   text: TextSpan(
                     text: 'Description',

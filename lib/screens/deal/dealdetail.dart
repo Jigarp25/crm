@@ -1,3 +1,5 @@
+import 'package:crm/firebase/Model/Deal.dart';
+import 'package:crm/screens/deal/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
 import 'package:crm/widgets/headcontainer.dart';
@@ -5,9 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:crm/widgets/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
 import 'package:crm/theme/colors.dart';
+import 'package:provider/provider.dart';
 
 class DealDetail extends StatefulWidget {
-  final Map<String, String> deal;
+ final DealModel deal;
 
   const DealDetail({super.key, required this.deal});
 
@@ -16,20 +19,18 @@ class DealDetail extends StatefulWidget {
 }
 class _DealDetailState extends State<DealDetail>{
   late String selectedStatus;
+  String customerName ='Loading...';
 
-  final List<String> dealStatuses = [
-    'Proposal Sent',
-    'Negotiation',
-    'Contract Sent',
-    'Won',
-    'Lost',
-    'onHold',
-    'NoResponse'
-  ];
+  @override
+  void initState(){
+    super.initState();
+    Provider.of<DealController>(context, listen: false).loadDropDownData();
+    selectedStatus = widget.deal.status ?? '';
+  }
 
   void _showEditAmountDialog(BuildContext context) {
-    final TextEditingController controller =
-    TextEditingController(text: widget.deal['amount'] ?? '');
+    TextEditingController controller =
+    TextEditingController(text: widget.deal.amount?.toStringAsFixed(2) ?? '');
 
     showDialog(
       context: context,
@@ -40,14 +41,10 @@ class _DealDetailState extends State<DealDetail>{
           content: TextField(
             controller: controller,
             keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              labelText: 'Amount',
-              filled: true,
-              fillColor: Colors.white,
-              prefixIcon: Icon(Icons.currency_rupee_outlined),
-              border:OutlineInputBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(16)),
-              )
+            decoration:  inputDecoration(
+              label: 'Amount',
+              hint: 'Enter Amount',
+              prefixIcon: Icons.currency_rupee_outlined,
             ),
           ),
           actions: [
@@ -59,10 +56,23 @@ class _DealDetailState extends State<DealDetail>{
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.white,
               ),
-              onPressed: () {
-                setState(() {
-                  widget.deal['amount'] = controller.text;
-                });
+              onPressed: () async {
+                double? newAmount = double.tryParse(controller.text);
+                if(newAmount != null){
+                  setState(() {
+                    widget.deal.amount =newAmount;
+                  });
+                  var controllerProvider = Provider.of<DealController>(context, listen: false);
+                  String? error =await controllerProvider.updateDealAmount(widget.deal.id!, newAmount);
+                  if (error == null) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Amount updated successfully')),
+                    );
+                  }else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)),
+                    );
+                  }
+                }
                 Navigator.pop(context);
               },
               child: const Text('Save'),
@@ -73,22 +83,30 @@ class _DealDetailState extends State<DealDetail>{
     );
   }
 
-
-  @override
-  void initState(){
-    super.initState();
-    selectedStatus=widget.deal['status']??'';
-  }
-
   @override
   Widget build(BuildContext context) {
-    final deal = widget.deal;
-    final title = deal['title'] ?? 'Deal Detail';
-    final assignedto = deal['assignedTo'] ?? 'Not Available';
-    final customer = deal['customer'] ?? 'Customer';
-    final amount = deal['amount'] ?? '';
-    final description = deal['description'] ?? '';
-    final companyname = deal['companyname'] ??'';
+    var deal = widget.deal;
+    var title = deal.title ?? 'Deal Detail';
+    var assignedTo = deal.assignedTo ?? 'Not Available';
+    var customerId = deal.customerId ?? 'Customer';
+    var amount = deal.amount ?? '';
+    var description = deal.description ?? '';
+    var companyName = deal.companyName ??'';
+
+    var controller = Provider.of<DealController>(context);
+    var assignedToName = controller.assignedUserList
+        .firstWhere(
+          (user) => user['id'] == assignedTo,
+      orElse: () => {'name': 'Unknown'},
+    )['name'] ??
+        'Unknown';
+
+    var customerName = controller.customerList
+        .firstWhere(
+          (cust) => cust['id'] == customerId,
+      orElse: () => {'name': 'Unknown'},
+    )['name'] ??
+        'Unknown';
 
     return Scaffold(
       appBar: AppBar(
@@ -102,7 +120,7 @@ class _DealDetailState extends State<DealDetail>{
           children: [
             HeadContainer(
               title: title,
-              subtitle: assignedto,
+              subtitle: assignedToName,
             ),
             vSpace(),
             DetailContainer(
@@ -110,9 +128,9 @@ class _DealDetailState extends State<DealDetail>{
                 children: [
                   DetailRow(label: 'Description', value: description),
                    vSpace(12),
-                  DetailRow(label: 'Company name', value: companyname),
+                  DetailRow(label: 'Company name', value: companyName),
                    vSpace(12),
-                  DetailRow(label: 'Customer', value: customer),
+                  DetailRow(label: 'Customer', value: customerName),
                    vSpace(12),
                 ],
               ) ,
@@ -135,22 +153,33 @@ class _DealDetailState extends State<DealDetail>{
                                 'Status',
                                   style: TextStyle(fontSize: 14,color: Color(0xff000000)),
                               ),
-                              DropdownButton<String>(
+                              DropdownButton(
                                 isExpanded: true,
                                 value: selectedStatus,
-                                onChanged: (value){
-                                  if(value != null){
+                                onChanged: (value) async{
+                                  if(value != null && value != selectedStatus){
                                     setState(() {
                                       selectedStatus = value;
                                     });
+                                    var dealId =widget.deal.id;
+                                    var error = await controller.updateDealStatus(dealId!, value);
+                                    if(error == null){
+                                      widget.deal.status = value;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Status updated successfully')),
+                                      );
+                                    }else {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(content: Text('Status updated successfully')),
+                                      );
+                                    }
                                   }
                                 },
-                              items: dealStatuses.map((status){
-                                return DropdownMenuItem(
+                             items: controller.dealStatus
+                                 .map((status) =>DropdownMenuItem(
                                   value: status,
-                                  child: Text(status, style: const TextStyle(fontSize: 16)),
-                                );
-                              }).toList(),
+                                  child: Text(status),
+                             )).toList(),
                             ),
                           ],
                         ),
@@ -173,7 +202,7 @@ class _DealDetailState extends State<DealDetail>{
             ),
           ),
           vSpace(),
-          Note(noteKey: 'lead_notes_${widget.deal['id']??'unknown'}'),
+          Note(noteKey: 'lead_notes_${widget.deal.id ??'unknown'}'),
            vSpace(32)
           ],
         ),
