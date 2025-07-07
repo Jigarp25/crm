@@ -134,8 +134,43 @@ class API{
   }
 
   //remove customer
-  static Future<void> removedeal(String id) async {
+  static Future<void> removeDeal(String id) async {
     await FireStoreDatabase.removeDeal(id);
   }
 
+  //Add note
+  static Future<void> addNote(String parentCollection, String parentId, Map<String, dynamic> noteData) async {
+    await FireStoreDatabase.addNote(
+      parentCollection: parentCollection,
+      parentId: parentId,
+      noteData: noteData,
+    );
+  }
+
+  //Get note
+  static Future<List<Map<String, dynamic>>> fetchNotes(String parentCollection, String parentId) async {
+    return await FireStoreDatabase.fetchNote(
+      parentCollection: parentCollection,
+      parentId: parentId,
+    );
+  }
+
+  //Update note
+  static Future<void> updateNote(String parentCollection, String parentId, String noteId, Map<String, dynamic> updatedData) async {
+    await FireStoreDatabase.updateNote(
+      parentCollection: parentCollection,
+      parentId: parentId,
+      noteId: noteId,
+      updatedData: updatedData,
+    );
+  }
+
+  //Delete note
+  static Future<void> deleteNote(String parentCollection, String parentId, String noteId) async {
+    await FireStoreDatabase.deleteNote(
+      parentCollection: parentCollection,
+      parentId: parentId,
+      noteId: noteId,
+    );
+  }
 }

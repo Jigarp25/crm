@@ -119,8 +119,9 @@ class _LeadListState extends State<LeadList>{
                         title: Text('Delete Lead from ${lead.companyName}'),
                         content: Text('Are you sure you want to delete lead ? This action cannot Be Undone.'),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-                          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
+                          ElevatedButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
+                          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Color(0xffff0000),
+                          ), onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.white),)),
                         ],
                       ),
                     );
@@ -197,11 +198,8 @@ class _LeadListState extends State<LeadList>{
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => ChangeNotifierProvider(
-                create: (_) => LeadController()..loadDropDownData(),
-                child: const AddLead(),
+              builder: (context) =>  const AddLead(),
               ),
-            ),
           );
         },
         icon: Icons.add,

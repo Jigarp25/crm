@@ -1,10 +1,11 @@
+import 'package:crm/firebase/DbConstants.dart';
 import 'package:crm/firebase/Model/Deal.dart';
 import 'package:crm/screens/deal/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
 import 'package:crm/widgets/headcontainer.dart';
 import 'package:flutter/material.dart';
-import 'package:crm/widgets/notes.dart';
+import 'package:crm/notes/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
 import 'package:crm/theme/colors.dart';
 import 'package:provider/provider.dart';
@@ -202,7 +203,10 @@ class _DealDetailState extends State<DealDetail>{
             ),
           ),
           vSpace(),
-          Note(noteKey: 'lead_notes_${widget.deal.id ??'unknown'}'),
+          Note(parentCollection: Const.dealCollection,
+              parentId: widget.deal.id ?? '',
+              createdBy: controller.currentUser?.id ?? ''
+          ),
            vSpace(32)
           ],
         ),

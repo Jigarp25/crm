@@ -18,14 +18,15 @@ class _AddLeadState extends State<AddLead>{
   @override
   void initState() {
     super.initState();
+    controller = Provider.of<LeadController>(context, listen: false);
     controller.loadDropDownData();
   }
-
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    controller = Provider.of<LeadController>(context);
+    controller = Provider.of<LeadController>(context, listen: false);
+    controller.loadLeads();
   }
 
 
@@ -57,6 +58,7 @@ class _AddLeadState extends State<AddLead>{
 
   @override
   Widget build(BuildContext context) {
+    var controller = Provider.of<LeadController>(context);
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: false,

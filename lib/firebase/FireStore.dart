@@ -263,4 +263,47 @@ class FireStoreDatabase{
         .update(data);
   }
 
+  static Future<void> addNote({required String parentCollection,required String parentId, required Map<String,dynamic> noteData}) async{
+    await Injector.databaseRef!
+        .collection(parentCollection)
+        .doc(parentId)
+        .collection(Const.noteSubCollection)
+        .add(noteData);
+  }
+
+  static Future<List<Map<String, dynamic>>> fetchNote({required String parentCollection,required String parentId}) async{
+   var snapshot= await Injector.databaseRef!
+       .collection(parentCollection)
+       .doc(parentId)
+       .collection(Const.noteSubCollection)
+       .orderBy(Const.keyCreatedAt, descending: true)
+       .get();
+
+   return snapshot.docs.map((doc) => {...doc.data(),'id':doc.id}).toList();
+  }
+
+  static Future<void> deleteNote({required String parentCollection,required String parentId,required String noteId}) async{
+    await Injector.databaseRef!
+       .collection(parentCollection)
+       .doc(parentId)
+       .collection(Const.noteSubCollection)
+       .doc(noteId)
+       .delete();
+  }
+
+  static Future<void> updateNote({required String parentCollection, required String parentId, required String noteId, required Map<String, dynamic> updatedData,}) async {
+    try {
+      await Injector.databaseRef!
+          .collection(parentCollection)
+          .doc(parentId)
+          .collection(Const.noteSubCollection)
+          .doc(noteId)
+          .update(updatedData);
+    } catch (e) {
+      debugPrint('Error updating note: $e');
+      rethrow;
+    }
+  }
+
+
 }

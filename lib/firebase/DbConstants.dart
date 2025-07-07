@@ -4,6 +4,7 @@ class Const {
   static var customerCollection             = 'Customers';
   static var leadCollection                 = 'Leads';
   static var dealCollection                 = 'Deals';
+  static var noteSubCollection              = 'Notes';
   //General Keys
   static var keyId                          = 'id';
   static var keyName                        = 'name';
@@ -33,6 +34,9 @@ class Const {
   static var keyAmount                      = 'amount';
   static var keyClosedDate                  = 'closedDate';
   static var keyLeadId                      = 'leadId';
+
+  //Notes
+  static var keyNoteContent                       = 'content';
 }
 
 enum UserRole{

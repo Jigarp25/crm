@@ -1,9 +1,10 @@
+import 'package:crm/firebase/DbConstants.dart';
 import 'package:crm/theme/colors.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:crm/utils/communication.dart';
-import 'package:crm/widgets/notes.dart';
+import 'package:crm/notes/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
 import 'package:provider/provider.dart';
 import '../../firebase/Model/Customer.dart';
@@ -84,7 +85,9 @@ class _CustomerDetailState extends State<CustomerDetail> {
               ),
             ),
             vSpace(),
-            Note(noteKey: 'customer_notes_${customer.id ?? 'unknown'}'),
+            Note(parentCollection: Const.customerCollection,
+                parentId: widget.customer.id ?? '',
+                createdBy: controller.currentUser?.id ?? ''),
           ],
         ),
       ),

@@ -1,7 +1,6 @@
 // lib/screens/login_screen.dart
 import 'package:crm/utils/validators.dart';
 import 'package:flutter/material.dart';
-import 'package:validators/validators.dart';
 import '../../widgets/buttons.dart';
 import 'register.dart';
 import '/utils/ui_utils.dart';
@@ -69,12 +68,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-              textButton(
-                  label: 'Forgot Password ?', onPressed: () async {
-                    //todo: navigate to reset password
-                  },
-                alignment: Alignment.topRight
-              ),
+              // textButton(
+              //     label: 'Forgot Password ?', onPressed: () async {
+              //       navigate to reset password
+                  // },
+                // alignment: Alignment.topRight
+              // ),
+              vSpace(),
               SizedBox(
                 width: double.infinity,
                 child: elevatedButton(

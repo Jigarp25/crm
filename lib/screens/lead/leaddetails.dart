@@ -1,10 +1,11 @@
+import 'package:crm/firebase/DbConstants.dart';
 import 'package:crm/screens/deal/adddeal.dart';
 import 'package:crm/screens/lead/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:crm/widgets/detailcontainer.dart';
 import 'package:flutter/material.dart';
 import 'package:crm/utils/communication.dart';
-import 'package:crm/widgets/notes.dart';
+import 'package:crm/notes/notes.dart';
 import 'package:crm/widgets/detailrow.dart';
 import 'package:provider/provider.dart';
 import '../../widgets/buttons.dart';
@@ -165,7 +166,10 @@ class _LeadDetailState extends State<LeadDetail>{
               ),
             ),
             vSpace(),
-            Note(noteKey: 'lead_notes_${widget.lead.id??'unknown'}'),
+            Note(parentCollection: Const.leadCollection,
+              parentId: widget.lead.id ?? '',
+              createdBy: controller.currentUser?.id ??'',
+            ),
             vSpace(),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
