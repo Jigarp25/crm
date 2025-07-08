@@ -5,15 +5,24 @@ import '../utils/ui_utils.dart';
 
 Future<Map<String, String?>> showFilterDialog({
   required BuildContext context,
-  required List<Map<String, String>> assignedUserList, // id + name
+  required List<Map<String, String>> assignedUserList,
   required List<String> statusList,
   String? currentAssignedId,
   String? currentStatus,
-  String title = 'Filter', // Optional title override
+  String title = 'Filter',
 }) async {
   String? tempAssignedId = currentAssignedId;
   String? tempStatus = currentStatus;
-
+  String? selectedAssignedName;
+  if (currentAssignedId != null) {
+    var match = assignedUserList.firstWhere(
+          (e) => e['id'] == currentAssignedId,
+      orElse: () => {},
+    );
+    selectedAssignedName = match['name'];
+  } else {
+    selectedAssignedName = null;
+  }
   await showDialog(
     context: context,
     builder: (context) {
@@ -28,10 +37,7 @@ Future<Map<String, String?>> showFilterDialog({
               // Assigned To Dropdown
               DropdownSearch<String>(
                 items: assignedUserList.map((e) => e['name'] ?? '').toList(),
-                selectedItem: assignedUserList.firstWhere(
-                      (e) => e['id'] == tempAssignedId,
-                  orElse: () => {'id': '', 'name': ''},
-                )['name'],
+                selectedItem: selectedAssignedName,
                 popupProps: PopupProps.menu(
                   showSearchBox: true,
                   searchFieldProps: TextFieldProps(
