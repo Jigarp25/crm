@@ -3,7 +3,7 @@ import 'package:crm/screens/profile/controller.dart';
 import 'package:crm/utils/ui_utils.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../utils/validators.dart';
+
 
 class UpdatePassword extends StatefulWidget {
   const UpdatePassword({super.key});
@@ -23,10 +23,6 @@ class _UpdatePassword extends State<UpdatePassword> {
   void didChangeDependencies(){
     super.didChangeDependencies();
     controller = Provider.of<ProfileController>(context);
-  }
-
-  void clear() {
-    controller.clearFields();
   }
 
   void _submit() async {
@@ -121,7 +117,10 @@ class _UpdatePassword extends State<UpdatePassword> {
                     },
                   ),
                 ),
-                  validator: (value) => Validators.validatePassword(value ?? '')
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Please enter your current password';
+                  return null;
+                },
               ),
               vSpace(),
               const Text('Confirm New Password', textAlign: TextAlign.left, style: TextStyle(fontSize: 18)),

@@ -85,8 +85,6 @@ class LeadController with ChangeNotifier {
     }
   }
 
-
-
   void loadDropDownData(){
     loadDropdownAssignData();
     loadDropdownCustomerData();
@@ -97,6 +95,11 @@ class LeadController with ChangeNotifier {
       return 'Please fill all required fields';
     }
 
+    String email = txtEmail.text.trim();
+    if (email.isEmpty){
+      email = 'Not available';
+    }
+
     try {
       var firebaseUser = FirebaseAuth.instance.currentUser;
       if (firebaseUser == null) return 'User not logged in';
@@ -104,7 +107,7 @@ class LeadController with ChangeNotifier {
       var lead = LeadModel(
         title: txtTitle.text.trim(),
         companyName: txtCompanyName.text.trim(),
-        email: txtEmail.text.trim(),
+        email: email,
         phoneNo: txtPhone.text.trim(),
         description: txtDescription.text.trim(),
         status: selectedStatus,

@@ -31,7 +31,7 @@ class _LoginScreenState extends State<LoginScreen> {
             children: [
               vSpace( 40),
               Image.asset(
-                'assets/images/logo.jpg',
+                'assets/images/logo.png',
                 height: 100,
                 width: 100,
               ),
@@ -59,11 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   suffixIcon: IconButton(
-                    icon: Icon(
-                      auth.obscureLoginPassword
-                          ? Icons.visibility_off
-                          : Icons.visibility,
-                    ),
+                    icon: Icon(auth.obscureLoginPassword ? Icons.visibility_off : Icons.visibility,),
                     onPressed: auth.toggleLoginPasswordVisibility,
                   ),
                 ),

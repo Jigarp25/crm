@@ -1,4 +1,5 @@
 import 'package:crm/screens/lead/controller.dart';
+import 'package:crm/utils/validators.dart';
 import 'package:flutter/material.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:provider/provider.dart';
@@ -31,29 +32,18 @@ class _AddLeadState extends State<AddLead>{
 
 
   Future<void> _handleSubmit() async {
-    if (controller.formKey.currentState?.validate() != true) return;
+    var result = await controller.leadSubmit();
+    var originalEmail = controller.txtEmail.text.trim();
 
-    var title = controller.txtTitle.text.trim();
-    var assignedTo = controller.selectedAssignedTo;
-    var customerId = controller.selectedCustomerId;
-    var status = controller.selectedStatus;
-
-
-    if (title.isEmpty || assignedTo == null ||customerId == null|| status == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please fill in all fields')),
-      );
-      return;
+    if (result != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)));
+    } else{
+      if(originalEmail.isEmpty){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email was not provided. Saved as "Not Available".')),
+        );
+      }
+      Navigator.pop(context);
     }
-
-    // Logic to save lead
-    var error = await controller.leadSubmit();
-    if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(error)));
-      return;
-    }
-
-    Navigator.pop(context);
   }
 
   @override
@@ -71,6 +61,7 @@ class _AddLeadState extends State<AddLead>{
                Navigator.pop(context);
              },
              child: CircleAvatar(
+               // backgroundColor: Colors.grey.shade300,
                child: const Icon(Icons.close,color: Color(0xff000000),),
              ),
             ),
@@ -137,6 +128,7 @@ class _AddLeadState extends State<AddLead>{
               TextFormField(
                 controller: controller.txtEmail,
                 decoration: inputDecoration( hint: 'Lead Email'),
+                validator: (value) => Validators.validateOptionalEmail(value),
               ),
               vSpace(),
               RichText(
@@ -237,6 +229,7 @@ class _AddLeadState extends State<AddLead>{
                   setState(() {});
                 },
               ),
+              vSpace(),
               RichText(
                   text: TextSpan(
                     text: 'Description',
@@ -251,12 +244,14 @@ class _AddLeadState extends State<AddLead>{
               ),
               TextFormField(
                 controller: controller.txtDescription,
-                decoration: inputDecoration( hint: 'Lead Tile'),
+                decoration: inputDecoration( hint: 'Lead Description'),
+                maxLines: 4,
               ),
-              SizedBox(
-                height: 24,
-                child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
-              ),
+              // SizedBox(
+              //   height: 24,
+              //   child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
+              // ),
+              vSpace(),
               SizedBox(
                 width: double.infinity,
                 child: elevatedButton(

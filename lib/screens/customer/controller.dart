@@ -74,6 +74,11 @@ class CustomerController with ChangeNotifier {
 
   // Submit customer
   Future<String?> submitCustomerForm() async {
+
+    String email = txtEmail.text.trim();
+    if (email.isEmpty){
+      email = 'Not available';
+    }
     if (txtName.text.trim().isEmpty ||
         txtPhoneNo.text.trim().isEmpty ||
         txtCompanyName.text.trim().isEmpty ||
@@ -87,7 +92,7 @@ class CustomerController with ChangeNotifier {
 
       var customer = CustomerModel(
         name: txtName.text.trim(),
-        email: txtEmail.text.trim(),
+        email: email,
         phoneNo: txtPhoneNo.text.trim(),
         companyName: txtCompanyName.text.trim(),
         buildingName: txtBuildingName.text.trim(),

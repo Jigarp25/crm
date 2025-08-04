@@ -25,7 +25,6 @@ class _LeadListState extends State<LeadList>{
   void initState() {
     super.initState();
     controller = Provider.of<LeadController>(context, listen: false);
-    
     controller.loadDropdownCustomerData().then((_) {
       controller.loadDropdownAssignData().then((_) {
         controller.loadCurrentUser().then((_) {
@@ -88,7 +87,7 @@ class _LeadListState extends State<LeadList>{
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Lead list'),
+        title: Text('Lead List'),
         actions: [
           IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list_outlined),),
           _appSearchAnchor(context),
@@ -120,8 +119,7 @@ class _LeadListState extends State<LeadList>{
                         content: Text('Are you sure you want to delete lead ? This action cannot Be Undone.'),
                         actions: [
                           ElevatedButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-                          ElevatedButton(style: ElevatedButton.styleFrom(backgroundColor: Color(0xffff0000),
-                          ), onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.white),)),
+                          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
                         ],
                       ),
                     );
@@ -209,31 +207,22 @@ class _LeadListState extends State<LeadList>{
 
 
   Widget _appSearchAnchor(BuildContext context) {
-    return Consumer<LeadController>(
-      builder: (context, controller, _) {
-        if (controller.leads.isEmpty || controller.customerList.isEmpty || controller.assignedUserList.isEmpty) {
-          return const SizedBox(); // or a disabled icon
-        }
-
-        return SharedSearch(
-          data: controller.getleadSearchList(),
-          onSelect: (leadMap) {
-            var title = leadMap['title'];
-            var match = controller.leads.firstWhere(
-                  (l) => l.title == title,
-              orElse: () => LeadModel(),
-            );
-
-            if (match.id != null) {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => LeadDetail(lead: match)),
-              );
-            } else {
-              debugPrint('Lead not found for title: $title');
-            }
-          },
+    return SharedSearch(
+      data: controller.getleadSearchList(),
+      onSelect: (leadMap) {
+        var title = leadMap['title'];
+        var match = controller.leads.firstWhere(
+          (l) => l.title == title,
+          orElse: () => LeadModel(),
         );
+
+        if (match.id != null) {
+          Navigator.push(context,
+            MaterialPageRoute(builder: (_) => LeadDetail(lead: match)),
+          );
+        } else {
+          debugPrint('Lead not found for title: $title');
+        }
       },
     );
   }

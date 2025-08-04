@@ -24,11 +24,17 @@ class _AddCustomerState extends State<AddCustomer>{
   }
 
   void _handleSubmit() async{
-   var result = await controller.submitCustomerForm();
+    var originalEmail = controller.txtEmail.text.trim();
+    var result = await controller.submitCustomerForm();
+
     if (result != null){
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(result)),
       );
     }else{
+      if(originalEmail.isEmpty){
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Email was not provided. Saved as "Not Available".')),
+        );
+      }
       Navigator.pop(context);
     }
    }
@@ -47,7 +53,7 @@ class _AddCustomerState extends State<AddCustomer>{
                 Navigator.pop(context);
               },
               child: CircleAvatar(
-                backgroundColor: Colors.grey.shade300,
+                // backgroundColor: Colors.grey.shade300,
                 child: const Icon(Icons.close, color:Colors.black),
               ),
             ),
@@ -94,7 +100,7 @@ class _AddCustomerState extends State<AddCustomer>{
               ),
               TextFormField(
                 controller: controller.txtEmail,
-                validator: (value) => Validators.validateEmail(value),
+                validator: (value) => Validators.validateOptionalEmail(value),
                 decoration: inputDecoration(
                   hint: 'Customer Email'
                 ),
@@ -192,6 +198,7 @@ class _AddCustomerState extends State<AddCustomer>{
               TextFormField(
                 controller: controller.txtPincode,
                 validator: (value)=>isNumeric(value ?? '') && value!.length == 6 ? null: 'Invalid pincode',
+                keyboardType: TextInputType.number,
                 decoration:  InputDecoration(
                   label: Text.rich(
                       TextSpan(
@@ -208,10 +215,11 @@ class _AddCustomerState extends State<AddCustomer>{
                   ),
                 ),
               ),
-              SizedBox(
-                height: 24,
-                child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
-              ),
+              // SizedBox(
+              //   height: 24,
+                //child: Text('* shows field is required',style: TextStyle(color: Color(0xffff0000)),),
+              // ),
+              vSpace(),
               SizedBox(
                 width: double.infinity,
                 child: elevatedButton(

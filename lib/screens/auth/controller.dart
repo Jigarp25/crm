@@ -18,7 +18,18 @@ class AuthController with ChangeNotifier {
   var txtRegisterPassword = TextEditingController();
   var txtRegisterConfirmPassword = TextEditingController();
   var txtRole = TextEditingController();
+  bool obscureCreatePassword = true;
+  bool obscureConfirmPassword = true;
 
+  void toggleCreatePasswordVisiblity(){
+    obscureCreatePassword =!obscureCreatePassword;
+    notifyListeners();
+  }
+
+  void toggleConfirmPasswordVisiblity(){
+    obscureConfirmPassword =!obscureConfirmPassword;
+    notifyListeners();
+  }
   void toggleLoginPasswordVisibility(){
     obscureLoginPassword =!obscureLoginPassword;
     notifyListeners();
@@ -50,9 +61,9 @@ class AuthController with ChangeNotifier {
     if (email.isEmpty || password.isEmpty)  return null;
 
     try{
+      var result = await API.loginByEmailPassword(email, password);
       await API.loginUserInAuth(email, password);
 
-      var result = await API.loginByEmailPassword(email, password);
       if (result.docs.isNotEmpty){
         var doc =result.docs.first;
         currentUser =UserModel.fromJson(doc.data() as Map<String,dynamic>, doc.id);

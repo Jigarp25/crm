@@ -1,5 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:validators/validators.dart';
+import 'package:email_validator/email_validator.dart';
 
 class Validators{
 
@@ -12,8 +11,17 @@ class Validators{
     return null;
   }
 
-  static String? validateEmail(String? value) {
-    if (value == null || value.trim().isEmpty) return 'Email is required';
-    return isEmail(value.trim()) ? null : 'Enter a valid email';
-  }
+  static String? validateEmail(String? v) =>
+      (v == null || v.trim().isEmpty) ? 'Email is required'
+          : !EmailValidator.validate(v.trim()) ? 'Enter a valid email'
+          : null;
+
+  static String? validateOptionalEmail(String? v) =>
+      (v == null || v.trim().isEmpty)
+      ? null
+      : !EmailValidator.validate(v.trim())
+        ? 'Enter a valid email'
+          : null;
+
 }
+

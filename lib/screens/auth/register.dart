@@ -14,22 +14,22 @@ class Register extends StatefulWidget {
   State<Register> createState() => _RegisterState();
 }
 
-typedef roleEntry= DropdownMenuEntry<userRole>;
+typedef RoleEntry= DropdownMenuEntry<UserRole>;
 
-enum userRole {
+enum UserRole {
   admin('Admin', 1),
   manager('Manager', 2),
   staff('Staff', 3);
 
-  const userRole(this.label, this.value);
+  const UserRole(this.label, this.value);
 
   final String label;
   final int value;
 
 
-  static final List<roleEntry> entries = UnmodifiableListView<roleEntry>(
-    userRole.values.map<roleEntry>(
-      (userRole role)=> roleEntry(
+  static final List<RoleEntry> entries = UnmodifiableListView<RoleEntry>(
+    UserRole.values.map<RoleEntry>(
+      (UserRole role)=> RoleEntry(
         value: role,
         label: role.label,
       ),
@@ -40,7 +40,7 @@ enum userRole {
 class _RegisterState extends State<Register>{
   final _formKey = GlobalKey<FormState>();
 
-  userRole? selectedRole;
+  UserRole? selectedRole;
 
   @override
   Widget build(BuildContext context) {
@@ -82,10 +82,10 @@ class _RegisterState extends State<Register>{
                   style: TextStyle( fontSize: 18)),
               Container(
                   alignment: Alignment.centerLeft,
-                  child: DropdownMenu<userRole>(
+                  child: DropdownMenu<UserRole>(
                       controller: auth.txtRole,
-                      dropdownMenuEntries: userRole.entries,
-                      onSelected:(userRole? role){
+                      dropdownMenuEntries: UserRole.entries,
+                      onSelected:(UserRole? role){
                         setState(() {
                           selectedRole = role ;
                           if(role != null){
@@ -112,7 +112,7 @@ class _RegisterState extends State<Register>{
                   style: TextStyle( fontSize: 18)),
               TextFormField(
                 controller: auth.txtRegisterPassword,
-                obscureText: true,
+                obscureText: auth.obscureCreatePassword,
                 decoration: InputDecoration(
                   fillColor: Color(0xffffffff),
                   filled: true,
@@ -120,6 +120,10 @@ class _RegisterState extends State<Register>{
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16)
                     ),
+                  suffixIcon: IconButton(
+                    icon: Icon(auth.obscureCreatePassword ? Icons.visibility_off : Icons.visibility ),
+                    onPressed: auth.toggleCreatePasswordVisiblity,
+                  ),
                   errorStyle: TextStyle(fontSize: 16, color: Colors.red),
                 ),
                 validator: (value) => Validators.validatePassword(value ?? ''),
@@ -129,7 +133,7 @@ class _RegisterState extends State<Register>{
                   style: TextStyle( fontSize: 18)),
               TextFormField(
                 controller: auth.txtRegisterConfirmPassword,
-                obscureText:true,
+                obscureText:auth.obscureConfirmPassword,
                 decoration: InputDecoration(
                   fillColor: Color(0xffffffff),
                   filled: true,
@@ -137,6 +141,10 @@ class _RegisterState extends State<Register>{
                     border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(16),
                     ),
+                  suffixIcon: IconButton(
+                    icon: Icon(auth.obscureConfirmPassword ? Icons.visibility_off : Icons.visibility,),
+                    onPressed: auth.toggleConfirmPasswordVisiblity,
+                  ),
                   errorStyle: TextStyle(
                       fontSize: 16,
                       color: Colors.red,
@@ -164,8 +172,7 @@ class _RegisterState extends State<Register>{
                       // submit the form
                       }else {
                         ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text(
-                              'Registration failed')),
+                          const SnackBar(content: Text('Registration failed')),
                         );
                       }
                     },

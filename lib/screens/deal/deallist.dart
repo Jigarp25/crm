@@ -87,7 +87,15 @@ class _DealListState extends State<DealList> {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<DealController>(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Deal List'),
+        actions: [
+          IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list)),
+          _appSearchAnchor(context),
+        ],
+      ),
+    body: Consumer<DealController>(
       builder: (context, controller, _) {
         if (controller.isLoading) {
           return const Center(child: CircularProgressIndicator());
@@ -95,98 +103,106 @@ class _DealListState extends State<DealList> {
 
         _filteredDeals = controller.deals;
 
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Deal List'),
-            actions: [
-              IconButton(onPressed: _openFilterDialog, icon: Icon(Icons.filter_list)),
-              _appSearchAnchor(context),
-            ],
-
-          ),
-          body: ListView.builder(
-            itemCount: _filteredDeals.length,
-            itemBuilder: (context, index) {
-              var deal = _filteredDeals[index];
-              var isAdmin = controller.currentUser?.role?.toLowerCase() == 'admin';
-              return GestureDetector(
-                  onLongPress: isAdmin
-                      ? () async{
-                    var confirm =await showDialog<bool>(
-                      context: context,
-                      builder: (context) => AlertDialog(
+        if (_filteredDeals.isEmpty) {
+          return const Center(child: Text('No Deals Found'));
+        }
+        return ListView.builder(
+          itemCount: _filteredDeals.length,
+          itemBuilder: (context, index) {
+            var deal = _filteredDeals[index];
+            var isAdmin = controller.currentUser?.role?.toLowerCase() ==
+                'admin';
+            return GestureDetector(
+              onLongPress: isAdmin
+                  ? () async {
+                var confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) =>
+                      AlertDialog(
                         title: Text('Delete Deal from ${deal.companyName}'),
-                        content: const Text('Are you sure you want to delete lead ? This action cannot Be Undone.'),
+                        content: const Text(
+                            'Are you sure you want to delete lead ? This action cannot Be Undone.'),
                         actions: [
-                          TextButton(onPressed: () => Navigator.pop(context, false), child: Text('Cancel')),
-                          ElevatedButton(onPressed: () => Navigator.pop(context, true), child: Text('Delete',style: TextStyle(color: Colors.red),)),
+                          TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: Text('Cancel')),
+                          ElevatedButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: Text('Delete',
+                                style: TextStyle(color: Colors.red),)),
                         ],
                       ),
-                    );
-                    if(confirm == true){
-                      await controller.removeDeal(deal.id!);
-                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('deal deleted')));
-                    }
-                  }
-                  :null,
-                child:  Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                  elevation: 2,
-                  child: ListTile(
-                    title: Text(deal.title ?? ''),
-                    subtitle: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Assigned To: ${controller.assignedUserList.firstWhere(
-                                (user) => user['id'] == deal.assignedTo,
-                            orElse: () {
-                                  debugPrint(' No match found for: ${deal.assignedTo}');
-                                  return {'name': 'Unknown'};
-                                  },
-                          )['name']}',
-                        ),
-                        Text(
-                          'Customer Name: ${controller.customerList.firstWhere(
-                              (customer) => customer['id'] == deal.customerId,
+                );
+                if (confirm == true) {
+                  await controller.removeDeal(deal.id!);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('deal deleted')));
+                }
+              }
+                  : null,
+              child: Card(
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+                elevation: 2,
+                child: ListTile(
+                  title: Text(deal.title ?? ''),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Assigned To: ${controller.assignedUserList.firstWhere(
+                              (user) => user['id'] == deal.assignedTo,
                           orElse: () {
-                            debugPrint(' No match found for: ${deal.customerId}');
+                            debugPrint(
+                                ' No match found for: ${deal.assignedTo}');
                             return {'name': 'Unknown'};
                           },
                         )['name']}',
-                        ),
-                        Text('Amount: ₹${deal.amount?.toStringAsFixed(2) ?? '0'}'),
-                      ],
-                    ),
-                    trailing: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: _getStatusColor(deal.status ?? '').withAlpha(80),
-                        borderRadius: BorderRadius.circular(20),
                       ),
-                      child: Text(
-                        deal.status ?? '',
-                        style: const TextStyle(color: Colors.black, fontSize: 11),
+                      Text(
+                        'Customer Name: ${controller.customerList.firstWhere(
+                              (customer) => customer['id'] == deal.customerId,
+                          orElse: () {
+                            debugPrint(
+                                ' No match found for: ${deal.customerId}');
+                            return {'name': 'Unknown'};
+                          },
+                        )['name']}',
                       ),
-                    ),
-                    onTap: ()  async{
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DealDetail(deal: deal),
-                        ),
-                      );
-                      Provider.of<DealController>(context,listen: false).loadDeals();
-                    },
+                      Text('Amount: ₹${deal.amount?.toStringAsFixed(2) ??
+                          '0'}'),
+                    ],
                   ),
+                  trailing: Container(
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(deal.status ?? '').withAlpha(80),
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      deal.status ?? '',
+                      style: const TextStyle(color: Colors.black, fontSize: 11),
+                    ),
+                  ),
+                  onTap: () async {
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => DealDetail(deal: deal),
+                      ),
+                    );
+                    Provider.of<DealController>(context, listen: false).loadDeals();
+                  },
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         );
       },
-    );
+    ),
+   );
   }
 
   Widget _appSearchAnchor(BuildContext context) {
